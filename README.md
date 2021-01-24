@@ -2,7 +2,8 @@
 
 ![IOBus Cards](cards.jpg)
 
-While thinking about ways to connect more hardware I realized that
+While thinking about ways to connect more hardware to my
+[Altair 8800 Simulator](https://github.com/dhansel/Altair8800) I realized that
 the signals that drive the DATA and ADDRESS LEDs, together with a
 few control signals (INP, OUT, WAIT) could be used to form a
 simple but effective I/O bus.
