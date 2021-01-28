@@ -15,8 +15,10 @@ Since the interface for 3.5-inch drives is identical to the
 I am using the card with a [Teac FD-55GFR](https://www.vogonswiki.com/index.php/Teac_FD-55GFR)
 and have also used it with a [Teac FD-235hg](https://www.cnet.com/products/teac-floppy-drive-fd-235hg-floppy-disk-drive-floppy-series) 3.5" drive.
 
-Additionally the card supports [Shugart SA-800 8-inch drives](https://github.com/dhansel/Altair8800-IOBus/blob/master/04-disk-controller/doc/Shugart_SA800_Brochure_Feb78.pdf).
-It may work with similar drives but I only have tried it with the SA-800.
+Additionally the card supports [Shugart SA-800](https://github.com/dhansel/Altair8800-IOBus/blob/master/04-disk-controller/doc/Shugart_SA800_Brochure_Feb78.pdf) 8-inch drives.
+It may work with similar drives but I only have tried it with the SA-800. To connect the 34-pin floppy cable to the to the SA-800's
+50-pin connector use the adapter from [this folder](https://github.com/dhansel/Altair8800-IOBus/tree/master/04-disk-controller/Shugart50to34adapter)
+and strap it as drive 0.
 
 When used as a 5.25" Minidisk system or with an 8" drive, the disk
 format used by the controller matches the original formats, allowing 
@@ -24,9 +26,7 @@ the Altair Simulator to read original Altair disks.
 
 The contoller supports up to two drives connected via a regular PC floppy
 disk drive cable (with the [twist](https://www.nostalgianerd.com/why-are-floppy-cables-twisted)). Both drives should be configured as drive "B" as was
-custom for PC drives. To connect the 34-pin floppy cable to the to a Shugart 
-drive with a 50-pin connector use the adapter from [this folder](https://github.com/dhansel/Altair8800-IOBus/tree/master/04-disk-controller/Shugart50to34adapter)
-and strap it as drive 0.
+custom for PC drives. 
 
 The 4 DIP switches on the card have the following functions:
 
