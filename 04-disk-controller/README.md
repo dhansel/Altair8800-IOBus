@@ -12,8 +12,11 @@ that a 5.25-inch disk in high density mode can hold the
 same amount of data as 8-inch single density disks.
 Since the interface for 3.5-inch drives is identical to the
 5.25-inch drives the card also works with 3.5-inch drives.
+I am using the card with a [Teac FD-55GFR](https://www.vogonswiki.com/index.php/Teac_FD-55GFR)
+and have also used it with a [Teac FD-235hg](https://www.cnet.com/products/teac-floppy-drive-fd-235hg-floppy-disk-drive-floppy-series) 3.5" drive.
 
-The card can also control a [Shugart SA-800 8-inch drive](https://github.com/dhansel/Altair8800-IOBus/blob/master/04-disk-controller/doc/Shugart_SA800_Brochure_Feb78.pdf).
+Additionally the card supports [Shugart SA-800 8-inch drives](https://github.com/dhansel/Altair8800-IOBus/blob/master/04-disk-controller/doc/Shugart_SA800_Brochure_Feb78.pdf).
+It may work with similar drives but I only have tried it with the SA-800.
 
 When used as a 5.25" Minidisk system or with an 8" drive, the disk
 format used by the controller matches the original formats, allowing 
