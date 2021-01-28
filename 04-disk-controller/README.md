@@ -10,15 +10,16 @@ it in double-density mode to replicate the Minidisk system
 or in high-density mode to emulate an 8-inch system. Note
 that a 5.25-inch disk in high density mode can hold the 
 same amount of data as 8-inch single density disks.
+I am using the card with a [Teac FD-55GFR](https://www.vogonswiki.com/index.php/Teac_FD-55GFR)
+
 Since the interface for 3.5-inch drives is identical to the
 5.25-inch drives the card also works with 3.5-inch drives.
-I am using the card with a [Teac FD-55GFR](https://www.vogonswiki.com/index.php/Teac_FD-55GFR)
-and have also used it with a [Teac FD-235hg](https://www.cnet.com/products/teac-floppy-drive-fd-235hg-floppy-disk-drive-floppy-series) 3.5" drive.
+I have successfully used the card with a [Teac FD-235hg](https://www.cnet.com/products/teac-floppy-drive-fd-235hg-floppy-disk-drive-floppy-series) 3.5" drive.
 
 Additionally the card supports [Shugart SA-800](https://github.com/dhansel/Altair8800-IOBus/blob/master/04-disk-controller/doc/Shugart_SA800_Brochure_Feb78.pdf) 8-inch drives.
 It may work with similar drives but I only have tried it with the SA-800. To connect the 34-pin floppy cable to the to the SA-800's
 50-pin connector use the adapter from [this folder](https://github.com/dhansel/Altair8800-IOBus/tree/master/04-disk-controller/Shugart50to34adapter)
-and strap it as drive 0.
+and strap the drive as drive 0. Refer to the [SA-800 user manual](https://github.com/dhansel/Altair8800-IOBus/blob/master/04-disk-controller/doc/SA800%20OEM%20Manual.pdf) about user-configurable options (straps).
 
 When used as a 5.25" Minidisk system or with an 8" drive, the disk
 format used by the controller matches the original formats, allowing 
