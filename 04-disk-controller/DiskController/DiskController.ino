@@ -2501,7 +2501,7 @@ void ctrl_head_load()
           // reset INDEX pin change flag
           PCIFR |= bit(PCIF0);
         }
-      else
+      else if( headReadyTimeout==0 )
         {
           // we're still good after previous unload => just set "head loaded" flag
           regStatus &= ~DRIVE_STATUS_HEAD;
