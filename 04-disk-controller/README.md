@@ -29,6 +29,20 @@ The contoller supports up to two drives connected via a regular PC floppy
 disk drive cable (with the [twist](https://www.nostalgianerd.com/why-are-floppy-cables-twisted)). Both drives should be configured as drive "B" as was
 custom for PC drives. 
 
+The original MITS controllers required hard-sectored disks to work which
+are not easy to come by and fairly expensive these days.
+This controller can work with both hard-sectored and soft-sectored disks,
+provided that the disk drive used has a stable rotation rate. The disk
+format used by MITS packs sectors very tightly so if the rotation rate varies
+too much then the single index hole of soft-sectored disks is not enough
+to keep controller and disk synchronized, causing the controller to miss 
+the the proper time to start reading a sector.
+
+In general belt-driven disk drives will have problems whereas direct-drive drives
+should be fine. That said I have used soft-sectored disks on the belt-driven
+SA-800 and it worked for the most part (with occasional read errors). I
+wouldn't trust the disks with any important data but for demos it works fine.
+
 The 4 DIP switches on the card have the following functions:
 
 DIP | Function when on         | Function when off
