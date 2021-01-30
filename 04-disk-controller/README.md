@@ -40,8 +40,9 @@ the the proper time to start reading a sector.
 
 In general belt-driven disk drives will have problems whereas direct-drive drives
 should be fine. That said I have used soft-sectored disks on the belt-driven
-SA-800 and it worked for the most part (with occasional read errors). I
-wouldn't trust the disks with any important data but for demos it works fine.
+SA-800 and it worked for the most part (with occasional read errors). 
+Hard-sectored disks in the SA-800 and soft-sectored disks the Teac 55-GFR work
+without problems.
 
 The 4 DIP switches on the card have the following functions:
 
