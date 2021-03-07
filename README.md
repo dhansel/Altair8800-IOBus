@@ -61,6 +61,15 @@ with this bus. The main limitations are:
   information on how this communication works, see the "Interfacing
   external hardware" section in the documentation.
 
+* **Shared data lines for input/output**
+  
+  The S-100 bus had separate data lines for data coming out of the CPU (DO0-DO7)
+  and data going into the CPU (DI0-DI7). This I/O bus has only one set of
+  data lines (D0-7). The CPU switches the direction of these lines depending on
+  whether an input or output operation is taking place. A device attached to
+  the bus must make sure to only put data onto the data bus while the INP
+  signal is high and the device's address is present on the address bus.
+
 * **No interrupt signals**
 
   The I/O bus at this point does not support interrupts. It may be
