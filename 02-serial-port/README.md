@@ -16,7 +16,13 @@ can not cause interrupts in the emulator.
 Obviously the Altair Simulator already comes with a serial interface
 but this card offers the possibility of adding more serial interfaces
 as well as supporting RTS/CTS flow control which can be helpfule when
-talking to slow peripherals such as printers.
+talking to slow peripherals such as printers. Note that flow control
+on 88-2SIO card is half-duplex/asymmectric which means that the Altair
+does **not** change the RTS output on the card according to whether it is
+ready to receive data. It only monitors the CTS line to see whether
+the connected device is ready to receive data. So this will not help
+when trying to send data to the Altair. You can read more about 
+half-duplex flow control in this [Wikipedia article](https://en.wikipedia.org/wiki/RS-232#RTS,_CTS,_and_RTR).
 
 To keep the chip count down, the serial clock generator on this card is 
 implemented using an ATTiny85 microcontroller. Note that the controller is 
