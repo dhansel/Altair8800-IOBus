@@ -89,7 +89,7 @@ with this bus. The main limitations are:
 
 ## I/O Cards
 
-So far there are four different types of cards that can be plugged
+So far there are six different types of cards that can be plugged
 into the I/O bus. Each is described in more detail in a sub-folder
 with corresponding name:
 
