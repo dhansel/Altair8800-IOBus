@@ -1,15 +1,14 @@
-## Floppy Disk Controller
+# Floppy Disk Controller
 
-Using the MITS firmware, this card replicates the function of the 
+ * Using the MITS firmware, this card replicates the function of the 
 MITS 88-DCDD 8-inch and 88-MDS (Minidisk) 5.25-inch floppy disk controllers.
-
-Using the MITS firmware, this card replicates the function of the 
+ * Using the ICOM firmware, this card replicates the function of the 
 ICOM3712 and ICOM3812 floppy disk controllers.
 
 ![Floppy Disk Controller Card](diskcontroller.jpg)
 
-It can be connected to a 5.25-inch disk drive and either use
-it in double-density mode to replicate the Minidisk system
+The card can be connected to a 5.25-inch disk drive and either use
+it in double-density mode to replicate the MITS Minidisk system
 or in high-density mode to emulate an 8-inch system. Note
 that a 5.25-inch disk in high density mode can hold the 
 same amount of data as 8-inch single density disks.
@@ -28,7 +27,7 @@ The contoller supports up to two drives connected via a regular PC floppy
 disk drive cable (with the [twist](https://www.nostalgianerd.com/why-are-floppy-cables-twisted)). 
 Both drives should be configured as drive "B" as was custom for PC drives. 
 
-# MITS firmware
+## MITS firmware
 
 The MITS boot ROM and software expect the disk drive at I/O address 08h-0Ah
 so jumper J3 should be set "up", all other address jumpers should be set "down".
@@ -61,12 +60,13 @@ DIP | Function when on         | Function when off
 3   | Drive B is Shugart SA-800| Drive B is generic 5.25-inch
 4   | Drive A is Shugart SA-800| Drive A is generic 5.25-inch
 
-# ICOM firmware
+## ICOM firmware
 
 The ICOM firmware emulates the ICOM3712 and ICOM3812 controllers including
-the parallel cards usually used to connect the controllers. The ICOM boot
-ROM and software expect the card at I/O address C0h so jumpers J7/J6 should
-be set "up", the other address jumpers should be set "down".
+the parallel cards usually used to connect the controllers. 
+
+The ICOM boot ROM and software expect the card at I/O address C0h-C1h so jumpers J7
+and J6 should be set "up", the other address jumpers should be set "down".
 
 ICOM boot ROMs for the 3712 and 3812 controllers as well as some disk images 
 are available on Mike Douglas' site at
@@ -79,8 +79,23 @@ DIP | Function when on           | Function when off
 3   | Drive B is Shugart SA-800  | Drive B is generic 5.25-inch
 4   | Drive A is Shugart SA-800  | Drive A is generic 5.25-inch
 
+## Common
 
-# Changes from initial PCB version
+The serial port present on the card can be connected to a PC via an FTDI
+USB-to-serial converter and has two functions:
+1. Upload the firmware to the ATmega328P processor on the card. Load the 
+firmware into the Arduino programming environment, select the
+"Arduino Pro or Pro Mini" board at 16MHz and upload the software.
+2. Provide a monitor to interact directly with the disk drive. To enter
+the monitor, connect a terminal to the serial port at 115200 baud, then press and
+hold the MONITOR button on the board and briefly press RESET. Hold the
+MONITOR button until the monitor prompt can be seen on the terminal.
+Enter 'h' at the monitor prompt for information about valid commands.
+
+Schematics and PCB as well as a Gerber file for PCB production are in this directory. 
+The project is also available on EasyEDA: https://oshwlab.com/hansel72/diskcontrolleruno
+
+## Changes from previous PCB version
 
 In order to support the ICOM firmware, a small change had to be made to the 
 pinout of the ATMega328p:
@@ -96,19 +111,3 @@ has no markings on the PCB, the newer V1.1 version has a V1.1 marking on the bot
 Note that nothing in the MITS firmware (other than the pin assignments) was changed
 so you can stick with the old board layout and MITS firmware unless you want to also
 use the new ICOM firmware.
-
-# Common
-
-The serial port present on the card can be connected to a PC via an FTDI
-USB-to-serial converter and has two functions:
-1. Upload the firmware to the ATmega328P processor on the card. Load the 
-firmware into the Arduino programming environment, select the
-"Arduino Pro or Pro Mini" board at 16MHz and upload the software.
-2. Provide a monitor to interact directly with the disk drive. To enter
-the monitor, connect a terminal to the serial port at 115200 baud, then press and
-hold the MONITOR button on the board and briefly press RESET. Hold the
-MONITOR button until the monitor prompt can be seen on the terminal.
-Enter 'h' at the monitor prompt for information about valid commands.
-
-Schematics and PCB as well as a Gerber file for PCB production are in this directory. 
-The project is also available on EasyEDA: https://oshwlab.com/hansel72/diskcontrolleruno
