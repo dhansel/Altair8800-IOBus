@@ -1,7 +1,10 @@
 ## Floppy Disk Controller
 
-This card replicates the function of the MITS 88-DCDD 8-inch 
-and 88-MDS (Minidisk) 5.25-inch floppy disk controllers.
+Using the MITS firmware, this card replicates the function of the 
+MITS 88-DCDD 8-inch and 88-MDS (Minidisk) 5.25-inch floppy disk controllers.
+
+Using the MITS firmware, this card replicates the function of the 
+ICOM3712 and ICOM3812 floppy disk controllers.
 
 ![Floppy Disk Controller Card](diskcontroller.jpg)
 
@@ -21,13 +24,18 @@ It may work with similar drives but I only have tried it with the SA-800. To con
 50-pin connector use the adapter from [this folder](https://github.com/dhansel/Altair8800-IOBus/tree/master/04-disk-controller/Shugart50to34adapter)
 and strap the drive as drive 0. Refer to the [SA-800 user manual](https://github.com/dhansel/Altair8800-IOBus/blob/master/04-disk-controller/doc/SA800%20OEM%20Manual.pdf) about user-configurable options (straps).
 
+The contoller supports up to two drives connected via a regular PC floppy
+disk drive cable (with the [twist](https://www.nostalgianerd.com/why-are-floppy-cables-twisted)). 
+Both drives should be configured as drive "B" as was custom for PC drives. 
+
+# MITS firmware
+
+The MITS boot ROM and software expect the disk drive at I/O address 08h-0Ah
+so jumper J3 should be set "up", all other address jumpers should be set "down".
+
 When used as a 5.25" Minidisk system or with an 8" drive, the disk
 format used by the controller matches the original formats, allowing 
 the Altair Simulator to read original Altair disks.
-
-The contoller supports up to two drives connected via a regular PC floppy
-disk drive cable (with the [twist](https://www.nostalgianerd.com/why-are-floppy-cables-twisted)). Both drives should be configured as drive "B" as was
-custom for PC drives. 
 
 The original MITS controllers required hard-sectored disks to work which
 are not easy to come by and fairly expensive these days.
@@ -52,6 +60,44 @@ DIP | Function when on         | Function when off
 2   | Swap drives A and B      | Do not swap drives
 3   | Drive B is Shugart SA-800| Drive B is generic 5.25-inch
 4   | Drive A is Shugart SA-800| Drive A is generic 5.25-inch
+
+# ICOM firmware
+
+The ICOM firmware emulates the ICOM3712 and ICOM3812 controllers including
+the parallel cards usually used to connect the controllers. The ICOM boot
+ROM and software expect the card at I/O address C0h so jumpers J7/J6 should
+be set "up", the other address jumpers should be set "down".
+
+ICOM boot ROMs for the 3712 and 3812 controllers as well as some disk images 
+are available on Mike Douglas' site at
+https://deramp.com/downloads/altair/software/icom_floppy.
+
+DIP | Function when on           | Function when off
+----|----------------------------|------------------
+1   | Act as ICOM3812 controller | Act as ICOM3712 controller
+2   | Swap drives A and B        | Do not swap drives
+3   | Drive B is Shugart SA-800  | Drive B is generic 5.25-inch
+4   | Drive A is Shugart SA-800  | Drive A is generic 5.25-inch
+
+
+# Changes from initial PCB version
+
+In order to support the ICOM firmware, a small change had to be made to the 
+pinout of the ATMega328p:
+
+ * The WRITEDATA signal was moved from ATMega pin 15 to pin 17
+ * The INDEX signal was moved from ATMega pin 17 to pin 19
+ * The WAIT sinal was moved from ATMega pin 19 to pin 15
+
+If you have a V1.PCB you will need to cut/add connections to 
+account for these changes in order to use the current firmware. The V1.0 board
+has no markings on the PCB, the newer V1.1 version has a V1.1 marking on the bottom left.
+
+Note that nothing in the MITS firmware (other than the pin assignments) was changed
+so you can stick with the old board layout and MITS firmware unless you want to also
+use the new ICOM firmware.
+
+# Common
 
 The serial port present on the card can be connected to a PC via an FTDI
 USB-to-serial converter and has two functions:

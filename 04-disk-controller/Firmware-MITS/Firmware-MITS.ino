@@ -26,7 +26,6 @@ Arduino   Atmega Register   Direction  Function
 RESET     1      PC6        in         RESET
 D0        2      PD0        in/out     D0
 D1        3      PD1        in/out     D1
-
 D2        4      PD2        in/out     D2
 D3        5      PD3        in/out     D3
 D4        6      PD4        in/out     D4
@@ -38,11 +37,11 @@ D5        11     PD5        in/out     D5
 D6        12     PD6        in/out     D6
 D7        13     PD7        in/out     D7
 D8        14     PB0        in         READ      (ICP1)
-D9        15     PB1        out        WRITE     (OC1A)
+D9        15     PB1        out        WAIT
 D10       16     PB2        out        SR latch  (inputs)
-D11       17     PB3        in         INDEX     (PCINT3/PCMSK0)
+D11       17     PB3        out        WRITE     (OC2A)
 D12       18     PB4        out        SR Latch  (outputs)
-D13       19     PB5        out        WAIT
+D13       19     PB5        in         INDEX     (PCINT5/PCMSK0)
 VIn       20                           AVCC
 ARef      21                           AREF
 GND       22                           GND
@@ -117,18 +116,20 @@ Bit    Function
 
 
 // un-comment to introduce debug pulses on certain pins:
-// WRITEDATA (PB1, AtMega pin 15): goes LOW during SECTOR TRUE, for hard-sectored media short LOW pulse for sector 0
-// SRDATA    (PC3, AtMega pin 26): goes LOW while reading sector data
+// WRITEDATA (PB1, ATMega pin 15): goes LOW during SECTOR TRUE, for hard-sectored media short LOW pulse for sector 0
+// SRDATA    (PC3, ATMega pin 26): goes LOW while reading sector data
 //#define DEBUG
 
 
 // pins 0-7 are hardwired to PD0-7 in functions busINP() and busOUT()
+#undef PIN_A0
+#undef PIN_A1
 #define PIN_READDATA      8   // must be pin 8 (ICP1 for timer1)
-#define PIN_WRITEDATA     9   // hardwired to PB1 in function write_sector_data()
+#define PIN_WAIT          9   // hardwired to PB1 in functions busINP() and busOUT()
 #define PIN_SRILATCH     10   // hardwired to PB2 in function shift_in()
-#define PIN_INDEX        11   // hardwired to PB3 (PCINT3)
+#define PIN_WRITEDATA    11   // hardwired to PB3 in function write_sector_data()
 #define PIN_SROLATCH     12   // hardwired to PB4 in function shift_out()
-#define PIN_WAIT         13   // hardwired to PB5 in functions busINP() and busOUT()
+#define PIN_INDEX        13   // hardwired to PB5 (PCINT5)
 #define PIN_A0           A0   // hardwired to PC0 in functions busINP() and busOUT()
 #define PIN_A1           A1   // hardwired to PC1 in functions busINP() and busOUT()
 #define PIN_SRCLOCK      A2   // hardwired to PC2 in function shift_out() 
@@ -472,7 +473,7 @@ void set_sector_length(byte drive, unsigned long rotationPeriod)
       sectorOffset[drive] += sectorLength[drive] / 2;
     }
   
-  // need at least 5us offset, otherwise setting OCR1A in function 
+  // need at least 5us offset, otherwise setting OCR2A in function 
   // handle_index_signal() might not produce a compare match.
   // note that the index hole signal is not  precise to the microsecond 
   // anyways (also all currently supported formats have sector offsets >100us)
@@ -522,7 +523,7 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
 
        // -----------------------------  first half of bit write (2+27+3=32 cycles)
 
-       "nxtbit:	cbi    0x05, 1\n"        // (2)   set "write data" line low (start of clock pulse)
+       "nxtbit:	cbi    0x05, 3\n"        // (2)   set "write data" line low (start of clock pulse)
        // (can't set "write data" back high immediately since SA-800 drive requires pulse 
        // length of at least 150ns, 2 cycles are only 125ns)
 
@@ -530,7 +531,7 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
 
        "LW1:    sbic   0x1b, 0\n"        // (1/2) skip next instruction if PCIF0 is clear
        "        rjmp   LW17\n"           // (2)   PCIF1 set => INDEX signal pin change detected
-       "	sbi    0x05, 1\n"        // (2)   set "write data" signal back to HIGH
+       "	sbi    0x05, 3\n"        // (2)   set "write data" signal back to HIGH
        "        sbrc   r16, 1\n"         // (1/2) is there unfinished bus activity?
        "        rjmp   LW9\n"            // (2)   yes, try to finish it
        "        sbic   0x06, 5\n"        // (1/2) skip next instruction if PC5 clear
@@ -547,7 +548,7 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
        // reading "status" (0) register (27-14=13 cycles left)
        "        out    0x0B, r20\n"      // (1) set output data on PORTD
        "        out    0x0A, r18\n"      // (1) switch PORTD to output
-       "        cbi    0x05, 5\n"        // (2) set WAIT signal to LOW
+       "        cbi    0x05, 1\n"        // (2) set WAIT signal to LOW
        "        ori    r16,  2\n"        // (1) set flag for unfinished bus activity
        "        WAIT   6\n"              // (6) wait for 13-7=6 cycles
        "        rjmp   LW13\n"           // (2)
@@ -555,7 +556,7 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
        // reading "sector" (1) register (27-15=12 cycles left)
        "LWi1:   out    0x0B, r21\n"      // (1)  set output data on PORTD
        "        out    0x0A, r18\n"      // (1)  switch PORTD to output
-       "        cbi    0x05, 5\n"        // (2)  set WAIT signal to LOW
+       "        cbi    0x05, 1\n"        // (2)  set WAIT signal to LOW
        "        ori    r16,  2\n"        // (1)  set flag for unfinished bus activity
        "        WAIT   5\n"              // (5)  wait for 12-7=5 cycles
        "        rjmp   LW13\n"           // (2) 
@@ -563,7 +564,7 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
        // reading "data in" (2 or 3) register (27-13=14 cycles left)
        "LWi2:   out    0x0B, r18\n"      // (1)  output 0xFF
        "        out    0x0A, r18\n"      // (1)  switch PORTD to output
-       "        cbi    0x05, 5\n"        // (2)  set WAIT signal to LOW
+       "        cbi    0x05, 1\n"        // (2)  set WAIT signal to LOW
        "        ori    r16,  2\n"        // (1)  set flag for unfinished bus activity
        "        WAIT   7\n"              // (7)  wait for 14-7=7 cycles
        "        rjmp   LW13\n"           // (2) 
@@ -571,7 +572,7 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
        // found OUT signal (27-9=18 cycles left)
        "LW5:    in     r19, 0x06\n"      // (1)   read address
        "        in     r17, 0x09\n"      // (1)   read data from bus
-       "        cbi    0x05, 5\n"        // (2)   set WAIT signal to LOW
+       "        cbi    0x05, 1\n"        // (2)   set WAIT signal to LOW
        "        ori    r16,  2\n"        // (1)   set flag for unfinished bus activity
        "        sbrc   r19, 0\n"         // (1/2) address bit 0 (PC0) clear?
        "        rjmp   LWo1\n"           // (2)   => no, writing "control" register (1 or 3)
@@ -599,9 +600,9 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
        // found INDEX signal pin change (27-3=24 cycles left)
        // note that this happens AT MOST twice per write cycle so it can not
        // starve out the communication
-       "LW17:   sbi    0x05, 1\n"        // (2)   set "write data" signal back to HIGH
+       "LW17:   sbi    0x05, 3\n"        // (2)   set "write data" signal back to HIGH
        "        sbi    0x1b, 0\n"        // (2)   clear PCIF0
-       "        sbic   0x03, 3\n"        // (1/2) skip next instruction if PB3 is clear
+       "        sbic   0x03, 5\n"        // (1/2) skip next instruction if PB5 is clear
        "        rjmp   LW17a\n"          // (2)   INDEX signal went HIGH (ignore)
        "        lds    r10, 0x84\n"      // (2)   get current TCNT1L
        "        lds    r11, 0x85\n"      // (2)   get current TCNT1H
@@ -621,7 +622,7 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
        "        brne   LW12\n"           // (1/2) if either one is set then we can't finish yet
        "        ldi    r17,  0\n"        // (1)   switch PORTD back to input
        "        out    0x0A, r17\n"      // (1)   (in case it was set to output)
-       "        sbi    0x05, 5\n"        // (2)   set WAIT signal back to HIGH
+       "        sbi    0x05, 1\n"        // (2)   set WAIT signal back to HIGH
        "        sbi    0x1b, 1\n"        // (2)   reset INP/OUT pin change flag (PCIFR & bit(PCI1F1))
        "        andi   r16,  253\n"      // (1)   clear flag for unfinished bus activity
        "        WAIT   8\n"              // (8)   wait for 20-10-2=8 cycles
@@ -632,18 +633,18 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
        // --- check whether to output data pulse (3 cycles)
        "LW13:  	sbrc	r25, 7\n"        // (1/2) check bit 7 of r25, skip next instruction if clear
        "	rjmp	bit1\n"          // (2)   bit is set => output data pulse ("1" bit)
-       "        WAIT    1\n"             // (3)   do not output pulse => wait to equalize timing
+       "        WAIT    1\n"             // (1)   do not output pulse => wait to equalize timing
        "	rjmp	bit0\n"          // (2)   do not output pulse ("0" bit)
 
        // -----------------------------  second half of bit write (4+17+11 = 32 cycles)
 
        // --- output data pulse (2 cycles)
-       "bit1:	cbi    0x05, 1\n"        // (2)   set write data line to LOW ("1" bit)
+       "bit1:	cbi    0x05, 3\n"        // (2)   set write data line to LOW ("1" bit)
 
        // --- wait 32-2-11=19 cycles (use this time to communicate)
        "bit0:   sbrc   r16, 1\n"         // (1/2) is there unfinished bus activity?
        "        rjmp   LW14\n"           // (2)   yes => try to finish it
-       "	sbi    0x05, 1\n"        // (2)   write data line back to HIGH
+       "	sbi    0x05, 3\n"        // (2)   write data line back to HIGH
        "        sbic   0x06, 5\n"        // (1/2) skip next instruction if PC5 clear
        "        rjmp   LW5b\n"           // (2)   PC5 set => found OUT
        "        sbis   0x06, 4\n"        // (1/2) skip next instruction if PC4 set
@@ -657,7 +658,7 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
        // reading "status" (0) register (11-3=8 cycles left)
        "        out    0x0B, r20\n"      // (1) set output data on PORTD
        "        out    0x0A, r18\n"      // (1) switch PORTD to output
-       "        cbi    0x05, 5\n"        // (2) set WAIT signal to LOW
+       "        cbi    0x05, 1\n"        // (2) set WAIT signal to LOW
        "        ori    r16,  2\n"        // (1) set flag for unfinished bus activity
        "        WAIT   1\n"              // (1) wait 8-7=1 cycles
        "        rjmp   LW16\n"           // (2)
@@ -668,13 +669,13 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
        "        rjmp   LW16\n"           // (2)
 
        // have unfinished bus activity (19-3=16 cycles left)
-       "LW14:   sbi    0x05, 1\n"        // (2)   write data line back to HIGH
+       "LW14:   sbi    0x05, 3\n"        // (2)   write data line back to HIGH
        "        in     r17, 0x06\n"      // (1)   read PINC
        "        andi   r17, 0x30\n"      // (1)   get bits 4+5
        "        brne   LW15\n"           // (1/2) if either one is set then we can't finish yet
        "        ldi    r17,  0\n"        // (1)   switch PORTD back to input
        "        out    0x0A, r17\n"      // (1)   (in case it was set for output)
-       "        sbi    0x05, 5\n"        // (2)   set WAIT signal back to HIGH
+       "        sbi    0x05, 1\n"        // (2)   set WAIT signal back to HIGH
        "        sbi    0x1b, 1\n"        // (2)   reset INP/OUT pin change flag (PCIFR & bit(PCI1F1))
        "        andi   r16,  253\n"      // (1)   clear flag for unfinished bus activity
        "        WAIT   2\n"              // (2)   wait for 16-12=2 cycles
@@ -699,7 +700,7 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
 
        // CPU writing "data out" (2) register (12-2=10 cycles left)
        "        in     r17, 0x09\n"      // (1)   read data from bus
-       "        cbi    0x05, 5\n"        // (2)   set WAIT signal to LOW
+       "        cbi    0x05, 1\n"        // (2)   set WAIT signal to LOW
        "        ori    r16,  2\n"        // (1)   set flag for unfinished bus activity
        "        or     r23, r23\n"       // (1)   if we have not yet received all bytes...
        "        brne   LW6b\n"           // (1/2) ...then store this one
@@ -725,9 +726,9 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
 
        // --- write one final clock pulse
        "wdone:  WAIT    2\n"             // (2)   to equalize timing
-       "        cbi	0x05, 1\n"       // (2)   output pulse on bit 1 of PORTB
+       "        cbi	0x05, 3\n"       // (2)   output pulse on bit 1 of PORTB
        "        WAIT    3\n"             // (3)   wait 3 cycles
-       "	sbi	0x05, 1\n"       // (2)
+       "	sbi	0x05, 3\n"       // (2)
 
        // --- finish potential unfinished bus activity
        "        sbrs    r16, 1\n"        // (1/2) do we have unfinished bus activity?
@@ -737,7 +738,7 @@ static void write_sector_data_hd(const byte *ptr, byte n, byte sector_start_offs
        "        brne    wbus\n"          // (1/2) if either one is set then wait
        "        ldi     r17,  0\n"       // (1)   switch PORTD...
        "        out     0x0A, r17\n"     // (1)   back to input
-       "        sbi     0x05, 5\n"       // (2)   set WAIT signal back to HIGH
+       "        sbi     0x05, 1\n"       // (2)   set WAIT signal back to HIGH
        "        sbi     0x1b, 1\n"       // (2)   reset INP/OUT pin change flag (PCIFR & bit(PCI1F1))
        "wdone2: andi    r16, 8\n"            // set "foundIndex" variable high if we have seen 
        "        sts     foundIndex,  r16\n"  // a high->low edge on INDEX signal
@@ -762,21 +763,22 @@ static void write_sector_data_dd(const byte *ptr, byte n, byte sector_start_offs
   // each lead-in bit takes 8 microseconds for DD.
   byte li = (readClear[selDrive]*2)/8 - (sector_start_offset/8);
 
-  // make sure OC1A is high before we enable WRITE_GATE
-  DDRB   &= ~0x02;                     // disable OC1A pin
-  TCCR1A  = bit(COM1A1) | bit(COM1A0); // set OC1A on compare match
-  TCCR1C |= bit(FOC1A);                // force compare match
-  TCCR1A  = 0;                         // disable OC1A control by timer
-  DDRB   |= 0x02;                      // enable OC1A pin
+  // make sure OC2A is high before we enable WRITE_GATE
+  DDRB   &= ~0x08;                     // disable OC2A pin
+  TCCR2A  = bit(COM2A1) | bit(COM2A0); // set OC2A on compare match
+  TCCR2B |= bit(FOC2A);                // force compare match
+  TCCR2A  = 0;                         // disable OC2A control by timer
+  DDRB   |= 0x08;                      // enable OC2A pin
 
   // enable write gate (takes about 2 microseconds)
   drivectrl_set(PIN_SRO_WRITEGATE, LOW);
 
-  // enable OC1A output pin control by timer (WRITE_DATA), initially high
-  uint16_t OCR1Aprev = OCR1A;
-  OCR1A  = TCNT1 + 2*4;   // first pulse in 4 microseconds
-  TIFR1  = bit(OCF1A);    // clear output compare flag
-  TCCR1A = bit(COM1A0); // COM1A1:0 =  01 => toggle OC1A on compare match
+  // enable OC2A output pin control by timer (WRITE_DATA), initially high
+  TCNT2  = 0;
+  OCR2A  = 2*4;           // first pulse in 4 microseconds
+  TIFR2  = bit(OCF2A);    // clear output compare flag
+  TCCR2A = bit(COM2A0);   // COM1A1:0 =  01 => toggle OC2A on compare match
+  TCCR2B = bit(CS21);     // prescaler /8
 
   asm volatile 
     (  // --- initialize
@@ -797,25 +799,24 @@ static void write_sector_data_dd(const byte *ptr, byte n, byte sector_start_offs
        "        ldi     r16, 0\n"         // 
        "        mov     r15, r16\n"       // r15 must be 0
        "        ldi     r16, 1\n"         // bit 0: sent clock pulse, bit 1: unfinished bus activity, bit 3: INDEX hole found
-       "        lds     r20, 0x0088\n"    // read OCR1AL
-       "        lds     r21, 0x0089\n"    // read OCR1AH
+       "        lds     r20, 0xB3\n"      // read OCR1AL
 
        // ===========================  start of write loop
 
-       "LWD0:   sbis   0x16, 1\n"        // (1/2) check if pulse write timer expired (OCF1A set in TIFR1)
+       "LWD0:   sbis   0x17, 1\n"        // (1/2) check if pulse write timer expired (OCF21A set in TIFR2)
        "        rjmp   LWD5\n"           // (2)   no => check for bus activity
 
        // ===========================   pulse write timer expired (max 28 cycles)
 
-       "        ldi    r19, 0x80\n"      // (1)   switch OCP1 pin back high
-       "        sts    0x82, r19\n"      // (2)   (by setting FOC1A in TCCR1C)
+       "        ldi    r19, 0x82\n"      // (1)   switch OCP2 pin back high
+       "        sts    0xB1, r19\n"      // (2)   (by setting FOC2A in TCCR2C)
        "        sbrc   r16, 0\n"         // (1/2) was this a clock pulse?
        "        rjmp   LWD1\n"           // (2)   yes => prepare for possible data pulse
 
        // just wrote a data pulse => prepare follwing clock pulse
        "        ori    r16, 1\n"         // (1)   next pulse is clock
        "        ldi    r19, 8\n"         // (1)   4us to next (clock) pulse
-       "        rjmp   LWD4\n"           // (2)   update OCR1A
+       "        rjmp   LWD4\n"           // (2)   update OCR2A
 
        // just wrote a clock pulse => get next data bit ready
        "LWD1:   add    r25, r25\n"       // (1)   shift data byte left one bit
@@ -831,20 +832,18 @@ static void write_sector_data_dd(const byte *ptr, byte n, byte sector_start_offs
        "LWD2:   sbrc   r25, 7\n"         // (1/2) check bit 7 of data byte, skip next instruction if clear
        "        rjmp   LWD3\n"           // (2)   next data bit is "1" bit
        "	ldi    r19, 16\n"        // (1)   next data bit is "0" => 8us to next (clock) pulse
-       "        rjmp   LWD4\n"           // (2)   update OCR1A
+       "        rjmp   LWD4\n"           // (2)   update OCR2A
        "LWD3:   ldi    r19, 8\n"         // (1)   next data bit is "1" => 4us to next (data) pulse
        "        andi   r16, 254\n"       // (1)   => next bit is data bit
 
-       // update OCR1A for next pulse (current OCR1A value is in r20/r21, number of cycles to add is in r19)
+       // update OCR2A for next pulse (current OCR2A value is in r20, number of cycles to add is in r19)
        // (worst case 19 cycles so far)
        // the longest path through the code from here back here is 9+3+24+2+19=57 cycles,
        //  the 4us * 16cyles/us = 64 cycles minimum time between two bits
        // (but too much for the 32 cycle time between bits for writing HD)
        "LWD4:   add    r20, r19\n"       // (1)   add number of cycles
-       "        adc    r21, r15\n"       // (1)   add 0 with carry
-       "        sts    0x89, r21\n"      // (2)   write OCR1AH
-       "        sts    0x88, r20\n"      // (2)   write OCR1AL
-       "        sbi    0x16, 1\n"        // (1)   clear output compare flag (set OCF1A in TIFR1)
+       "        sts    0xB3, r20\n"      // (2)   write OCR2A
+       "        sbi    0x17, 1\n"        // (1)   clear output compare flag (set OCF2A in TIFR2)
        "        rjmp   LWD0\n"           // (2)   done (worst case 28 cycles)
        
        // used as a hop when jumping to end of write loop
@@ -857,7 +856,7 @@ static void write_sector_data_dd(const byte *ptr, byte n, byte sector_start_offs
        "LWD5:   sbis    0x1b, 0\n"       // (1/2) skip next instruction if PCIF0 is set
        "        rjmp    LWD5b\n"         // (2)   no INDEX signal pin change => check bus activity
        "        sbi     0x1b, 0\n"       // (1)   clear PCIF0
-       "        sbic    0x03, 3\n"       // (1/2) skip next instruction if PB3 is clear
+       "        sbic    0x03, 5\n"       // (1/2) skip next instruction if PB5 is clear
        "        rjmp    LWD0\n"          // (2)   INDEX signal went HIGH => back to start (6 cycles)
        "        lds     r10, 0x84\n"     // (2)   get current TCNT1L
        "        lds     r11, 0x85\n"     // (2)   get current TCNT1H
@@ -888,28 +887,28 @@ static void write_sector_data_dd(const byte *ptr, byte n, byte sector_start_offs
        "        ori    r19,  1\n"        // (1)   yes, not ready to receive (limit buffering)
        "LWD5a:  out    0x0B, r19\n"      // (1)   set output data on PORTD
        "        out    0x0A, r18\n"      // (1)   switch PORTD to output
-       "        cbi    0x05, 5\n"        // (2)   set WAIT signal to LOW
+       "        cbi    0x05, 1\n"        // (2)   set WAIT signal to LOW
        "        ori    r16,  2\n"        // (1)   set flag for unfinished bus activity
        "        rjmp   LWD0\n"           // (2)   done (24 cycles)
 
        // reading "sector" (1) register (11 cycles so far)
        "LWD6:   out    0x0B, r14\n"      // (1)  set output data on PORTD
        "        out    0x0A, r18\n"      // (1)  switch PORTD to output
-       "        cbi    0x05, 5\n"        // (2)  set WAIT signal to LOW
+       "        cbi    0x05, 1\n"        // (2)  set WAIT signal to LOW
        "        ori    r16,  2\n"        // (1)  set flag for unfinished bus activity
        "        rjmp   LWD0\n"           // (2)  done (18 cycles)
 
        // reading "data in" (2 or 3) register (9 cycles so far)
        "LWD7:   out    0x0B, r18\n"      // (1)  output 0xFF
        "        out    0x0A, r18\n"      // (1)  switch PORTD to output
-       "        cbi    0x05, 5\n"        // (2)  set WAIT signal to LOW
+       "        cbi    0x05, 1\n"        // (2)  set WAIT signal to LOW
        "        ori    r16,  2\n"        // (1)  set flag for unfinished bus activity
        "        rjmp   LWD0\n"           // (2)  done (16 cycles)
 
        // found OUT signal (5 cycles so far)
        "LWD8:   in     r19, 0x06\n"      // (1)   read address
        "        in     r17, 0x09\n"      // (1)   read data from bus
-       "        cbi    0x05, 5\n"        // (2)   set WAIT signal to LOW
+       "        cbi    0x05, 1\n"        // (2)   set WAIT signal to LOW
        "        ori    r16,  2\n"        // (1)   set flag for unfinished bus activity
        "        sbrs   r19, 1\n"         // (1/2) address bit 1 (PC1) set?
        "        rjmp   LWD0\n"           // (2)   => NOT writing data register => ignore, done (8 cycles)
@@ -926,7 +925,7 @@ static void write_sector_data_dd(const byte *ptr, byte n, byte sector_start_offs
        "        andi   r17, 0x30\n"      // (1)   get bits 4+5
        "        brne   LWD9a\n"          // (1/2) if either one is set then we can't finish yet
        "        out    0x0A, r15\n"      // (1)   set PORTD to input
-       "        sbi    0x05, 5\n"        // (2)   set WAIT signal back to HIGH
+       "        sbi    0x05, 1\n"        // (2)   set WAIT signal back to HIGH
        "        sbi    0x1b, 1\n"        // (2)   reset INP/OUT pin change flag (PCIFR & bit(PCI1F1))
        "        andi   r16,  253\n"      // (1)   clear flag for unfinished bus activity
        "LWD9a:  rjmp   LWD0\n"           // (2)   done (14 cycles)
@@ -940,7 +939,7 @@ static void write_sector_data_dd(const byte *ptr, byte n, byte sector_start_offs
        "        andi    r17, 0x30\n"     // (1)   mask bits 4+5
        "        brne    LWD11\n"         // (1/2) if either one is set then wait
        "        out     0x0A, r15\n"     // (1)   set PORTD to input
-       "        sbi     0x05, 5\n"       // (2)   set WAIT signal back to HIGH
+       "        sbi     0x05, 1\n"       // (2)   set WAIT signal back to HIGH
        "        sbi     0x1b, 1\n"       // (2)   reset INP/OUT pin change flag (PCIFR & bit(PCI1F1))
        "LWD12:  andi    r16, 8\n"            // set "foundIndex" variable high if we have seen 
        "        sts     foundIndex,  r16\n"  // a high->low edge on INDEX signal
@@ -949,16 +948,13 @@ static void write_sector_data_dd(const byte *ptr, byte n, byte sector_start_offs
 
        :                                  // no outputs
        : "z"(ptr), "d"(n), "r"(li)        // inputs 
-       : "r10", "r11", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21", "r23", "r24", "r25", "r26", "r27"); // clobbers (x=r26/r27)
+       : "r10", "r11", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r23", "r24", "r25", "r26", "r27"); // clobbers (x=r26/r27)
   
   // disable write gate
   drivectrl_set(PIN_SRO_WRITEGATE, HIGH);
 
-  // COM1A1:0 = 00 => disconnect OC1A (will go high)
-  TCCR1A = 0;
-
-  // restore previous OCR1A value
-  OCR1A = OCR1Aprev;
+  // COM2A1:0 = 00 => disconnect OC2A (will go high)
+  TCCR2A = 0;
 }
 
 
@@ -987,6 +983,7 @@ byte read_sector_data(byte *buffer, byte n)
 
   // time out after sectorLength-2*readClear microseconds
   // (timer 2 prescaler is /1024, 64us resolution, max time = 16.384ms)
+  TCCR2B = bit(CS22) | bit(CS21) | bit(CS20); // prescaler /64
   TCNT2 = 0;
   OCR2A = (sectorLength[selDrive]-2*readClear[selDrive])/64;
   TIFR2 = bit(OCF2A);
@@ -1073,7 +1070,7 @@ byte read_sector_data(byte *buffer, byte n)
       // PR5 set => found OUT signal (6 cycles so far)
       "        sbis   0x06, 1\n"        // (1/2) address bit 1 (PC1) set?
       "        rjmp   rdon2\n"          // (2)   no, writing register 0 or 1 => abort reading, do NOT release WAIT
-      "        cbi    0x05, 5\n"        // (2)   writing other register, ignore => set WAIT signal to LOW
+      "        cbi    0x05, 1\n"        // (2)   writing other register, ignore => set WAIT signal to LOW
       "        ori    r16, 2\n"         // (1)   set flag for unfinished bus activity
       "        rjmp   LR0\n"            // (2)   back to start (13+2 cycles)
 
@@ -1090,14 +1087,14 @@ byte read_sector_data(byte *buffer, byte n)
       "        andi   r19, 127\n"       // (1)   have data => clear NRDA bit
       "LR8:    out    0x0B, r19\n"      // (1)   set output data on PORTD
       "        out    0x0A, r15\n"      // (1)   switch PORTD to output
-      "        cbi    0x05, 5\n"        // (2)   set WAIT signal to LOW
+      "        cbi    0x05, 1\n"        // (2)   set WAIT signal to LOW
       "        ori    r16,  2\n"        // (1)   set flag for unfinished bus activity
       "        rjmp   LR1\n"            // (2)   back to start (20 cycles)
 
       // reading "sector" (1) register (10 cycles so far)
       "LR7:    out    0x0B, r14\n"      // (1)   set output data on PORTD
       "        out    0x0A, r15\n"      // (1)   switch PORTD to output
-      "        cbi    0x05, 5\n"        // (2)   set WAIT signal to LOW
+      "        cbi    0x05, 1\n"        // (2)   set WAIT signal to LOW
       "        ori    r16,  2\n"        // (1)   set flag for unfinished bus activity
       "        rjmp   LR1\n"            // (2)   back to start (17 cycles)
 
@@ -1107,7 +1104,7 @@ byte read_sector_data(byte *buffer, byte n)
       "        ld     r19, X+\n"        // (2)   load data byte
       "        out    0x0B, r19\n"      // (1)   set output data on PORTD
       "        out    0x0A, r15\n"      // (1)   switch PORTD to output
-      "        cbi    0x05, 5\n"        // (2)   set WAIT signal to LOW
+      "        cbi    0x05, 1\n"        // (2)   set WAIT signal to LOW
       "        ori    r16,  2\n"        // (1)   set flag for unfinished bus activity
       "LR6a:   rjmp   LR1\n"            // (2)   back to start (19 cycles)
 
@@ -1118,7 +1115,7 @@ byte read_sector_data(byte *buffer, byte n)
       "        rjmp   LR0\n"            // (2)   can't finish yet (8+2 cycles)
       "LR9a:   ldi    r19,  0\n"        // (1)   switch PORTD...
       "        out    0x0A, r19\n"      // (1)   back to input
-      "        sbi    0x05, 5\n"        // (2)   set WAIT signal back to HIGH
+      "        sbi    0x05, 1\n"        // (2)   set WAIT signal back to HIGH
       "        sbi    0x1b, 1\n"        // (2)   reset INP/OUT pin change flag (PCIFR & bit(PCI1F1))
       "        andi   r16,  253\n"      // (1)   clear flag for unfinished bus activity
       "        rjmp   LR1\n"            // (2)   back to start (16 cycles)
@@ -1127,7 +1124,7 @@ byte read_sector_data(byte *buffer, byte n)
       "LR10:   sbis    0x1b, 0\n"       // (1/2) skip next instruction if PCIF0 is set
       "        rjmp    LR0\n"           // (2)   no INDEX signal pin change => back to start (10+2 cycles)
       "        sbi     0x1b, 0\n"       // (2)   clear PCIF0
-      "        sbic    0x03, 3\n"       // (1/2) skip next instruction if PB3 is clear
+      "        sbic    0x03, 5\n"       // (1/2) skip next instruction if PB5 is clear
       "        rjmp    LR0\n"           // (2)   INDEX signal went HIGH => back to start (14+2 cycles)
       "        lds     r10, 0x84\n"     // (2)   get current TCNT1L
       "        lds     r11, 0x85\n"     // (2)   get current TCNT1H
@@ -1148,7 +1145,7 @@ byte read_sector_data(byte *buffer, byte n)
       "        brne    wtbus\n"         // (1/2) if either one is set then wait
       "        ldi     r19,  0\n"       // (1)   switch PORTD...
       "        out     0x0A, r17\n"     // (1)   back to input
-      "        sbi     0x05, 5\n"       // (2)   set WAIT signal back to HIGH
+      "        sbi     0x05, 1\n"       // (2)   set WAIT signal back to HIGH
       "        sbi     0x1b, 1\n"       // (2)   reset INP/OUT pin change flag (PCIFR & bit(PCI1F1))
       "rdon2:  mov     %0, r26\n"       // (1)   return difference between current value of...
       "        sub     %0, r12\n"       // (1)   ...read pointer and beginning value of read pointer
@@ -1248,7 +1245,7 @@ static bool wait_index_hole(bool resetTimer = true)
   byte ctr = 4;
 
   // wait for END of index hole (in case we're on the hole right now)
-  while( !(PINB & 0x08) )
+  while( !(PINB & 0x20) )
     {
       if( TIFR1 & bit(TOV1) )
         {
@@ -1268,7 +1265,7 @@ static bool wait_index_hole(bool resetTimer = true)
 
   // wait for START of index hole (same as above)
   ctr = 4;
-  while( (PINB & 0x08) )
+  while( (PINB & 0x20) )
     {
       if( TIFR1 & bit(TOV1) )
         {
@@ -1506,8 +1503,6 @@ static bool step_to_track0()
 
 static byte step_to_track(byte track)
 {
-  byte res = S_OK;
-
   if( current_track[selDrive]==0xFF )
     if( !step_to_track0() )
       return S_NOTRACK0;
@@ -1884,7 +1879,7 @@ void measure_rotation_stats()
       bool full = false;
       byte i = 0, timesArraySize = 64;
       unsigned int *times = (unsigned int *) dataBuffer+128;
-      unsigned int min = 0xFFFFFFFF, max = 0;
+      unsigned int min = 0xFFFF, max = 0;
       unsigned long sum = 0, avgbase, avgdiff;
       
       while( !Serial.available() )
@@ -2566,7 +2561,7 @@ void ctrl_write_sector()
   
   // sector NOT true anymore
   regSector |= 1; 
-  DBGPIN(PORTB, 1, 1);
+  DBGPIN(PORTB, 3, 1);
       
   TIFR1 = bit(OCF1A); // clear timer 1 output compare flag
 }
@@ -2652,6 +2647,7 @@ void ctrl_select_drive(byte drive)
           sectorTimerState = TS_NOT_SYNCED;
           headReadyTimeout = HEAD_LOAD_TIME;
           shortSector = false;
+          DBGPIN(PORTB, 3, 1);
         }
     }
 
@@ -2801,10 +2797,10 @@ void handle_bus_communication()
       byte reg = PINC & 0x03;     // get register address
       PORTD = read_register(reg); // read register and write value to PORTD
       DDRD = 0xFF;                // switch data bus pins to output
-      PORTB &= ~0x20;             // set WAIT signal to LOW
+      PORTB &= ~0x02;             // set WAIT signal to LOW
       while( (PINC & 0x10) );     // wait until INP signal ends
       DDRD = 0x00;                // switch data bus pins back to input
-      PORTB |= 0x20;              // set WAIT signal back to HIGH
+      PORTB |= 0x02;              // set WAIT signal back to HIGH
       PCIFR |= bit(PCIF1);        // reset INP/OUT pin change flag
     }
   else if( PINC & 0x20 )
@@ -2812,9 +2808,9 @@ void handle_bus_communication()
       // bus output (CPU -> controller)
       byte reg = PINC & 0x03;     // get register address
       byte data = PIND;           // get input data
-      PORTB &= ~0x20;             // set WAIT signal to LOW
+      PORTB &= ~0x02;             // set WAIT signal to LOW
       while( (PINC & 0x20) );     // wait until OUT signal ends
-      PORTB |= 0x20;              // set WAIT signal back to HIGH
+      PORTB |= 0x02;              // set WAIT signal back to HIGH
       PCIFR |= bit(PCIF1);        // reset INP/OUT pin change flag
       write_register(reg, data);  // write register
     }
@@ -2828,7 +2824,7 @@ void handle_index_signal()
 {
   // if BOTH the foundIndex flag and PCIF0 are set then we handle
   // foundIndex first, PCIF0 will be handled the next time we get here
-  if( (PINB & 0x08)==0 || foundIndex )
+  if( (PINB & 0x20)==0 || foundIndex )
     {
       unsigned int t;
 
@@ -3010,17 +3006,17 @@ void handle_sector_timer()
             // sector-start index holes keep us in sync with the disk
             regSector++;
             if( regSector==2*numSectors[selDrive] ) regSector = 0;
-            if( regSector==0 ) DBGPULSE(PORTB, 1);
+            if( regSector==0 ) DBGPULSE(PORTB, 3);
             OCR1A += SECTOR_TRUE_PERIOD * 2;
             sectorTimerState = TS_SECTOR_TRUE;
-            DBGPIN(PORTB, 1, 0);
+            DBGPIN(PORTB, 3, 0);
           }
         else
           {
             // for soft-sectored media do not roll over from the last sector to sector 0,
             // we will go to sector 0 when the INDEX hole is detected
             regSector |= 1; 
-            DBGPIN(PORTB, 1, 1);
+            DBGPIN(PORTB, 3, 1);
             sectorTimerState = TS_NOT_SYNCED;
           }
                 
@@ -3031,7 +3027,7 @@ void handle_sector_timer()
       {
         // end of "sector true" period
         regSector |= 1;
-        DBGPIN(PORTB, 1, 1);
+        DBGPIN(PORTB, 3, 1);
                 
         if( (regStatus & DRIVE_STATUS_HEAD)==0 )
           { 
@@ -3100,7 +3096,7 @@ void handle_sector_timer()
         // by now but didn't => lost sync, must re-sync
         // (this will happen if the user removes the disk or we miss an index
         //  hole for unknown reasons)
-        DBGPIN(PORTB, 1, 1);
+        DBGPIN(PORTB, 3, 1);
         sectorTimerState = TS_NOT_SYNCED;
 
         // check whether head was ready before 
@@ -3249,7 +3245,7 @@ void setup()
   // set up pin change notifications for OUT, INP and INDEX signals
   PCMSK1 |= bit(PCINT12);    // INP
   PCMSK1 |= bit(PCINT13);    // OUT
-  PCMSK0 |= bit(PCINT3);     // INDEX
+  PCMSK0 |= bit(PCINT5);     // INDEX
   PCIFR = bit(PCIF0) | bit(PCIF1);
   
   // initialize EEPROM configuration if necessary
@@ -3261,10 +3257,6 @@ void setup()
       EEPROM.write(3, 0); // config version 0
       EEPROM.write(4, 0); // drive flags=0
     }
-
-  // start timer 2 with prescaler /1024 = 64us tick frequency
-  // (used to measure time during read operations)
-  TCCR2B = bit(CS22) | bit(CS21) | bit(CS20);
 }
  
 

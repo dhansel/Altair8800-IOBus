@@ -1,0 +1,46 @@
+OmniDisk: http://www.shlock.co.uk/Utils/OmniDisk/OmniDisk.htm
+CuriousMarc reading old 8" SD IBM3740 disks with OmnidDisk: https://youtu.be/5FVwheTVWko?t=520
+(note: 5.25" HD drive interface and capacity is the same as 8" DD drive)
+
+Format ICOM3712 (IBM 3470) disk
+-------------------------------
+
+density manual
+cyls from 0 to 76
+sects from 1 to 26
+interleave 1
+rate 0 (=500mbps, necessary for SD FM)
+size 0
+mfm off
+use manual
+format head 0
+
+
+Format ICOM3812 disk
+--------------------
+
+[format whole disk as DD]
+density manual
+cyls from 0 to 76
+sects from 1 to 26
+interleave 1
+rate 0 (=500mbps for DD MFM)
+size 1
+mfm on
+use manual
+format head 0 (or just "format" to format both sides)
+
+[re-format track 0 head 0 as SD FM]
+size 0
+mfm off
+track 0
+head 0
+format track
+
+
+
+OmnniDisk data transfer rates:
+RATE 0 : 500kbps / DOS1M2, DOS1M44 (HD 5.25" or 3.5" drive)
+RATE 1 : 300kbps / DOS360 (for HD 5.25" drive reading DD disk at 360RPM)
+RATE 2 : 250kbps / DOS720 (for DD 3.5" drive or DD 5.25" at 300RPM)
+RATE 3 : 1mbps   / DOS2M88
