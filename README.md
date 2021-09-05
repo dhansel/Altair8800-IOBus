@@ -102,7 +102,13 @@ with corresponding name:
 - A [parallel port](https://github.com/dhansel/Altair8800-IOBus/tree/master/03-parallel-port) equivalent to a 88-PIO card
 
 - A [floppy disk controller](https://github.com/dhansel/Altair8800-IOBus/tree/master/04-disk-controller) equivalent to the 88-DCDD and 88-MD (minidisk)
-  controllers that can use regular 5.25" and 3.5" floppy drives as well as Shugart SA-800 8" drives.
+  controllers that can use regular 5.25" and 3.5" floppy drives as well as Shugart SA-800 8" drives. An alternate firmware for this card also lets it
+  function as an ICOM3712 or ICOM3812 disk controller.
+  
+- A [Centronics printer interface](https://github.com/dhansel/Altair8800-IOBus/tree/master/05-centronics-interface) equivalent to a 88-C700 card
+
+- A [Cassette interface](https://github.com/dhansel/Altair8800-IOBus/tree/master/06-cassette-interface) equivalent to a 88-ACR card
+  
   
 The cards plug into a [backplane](https://github.com/dhansel/Altair8800-IOBus/tree/master/00-backplane) that connects to the Altair Simulator.
 
