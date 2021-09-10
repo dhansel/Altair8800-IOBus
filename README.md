@@ -115,38 +115,3 @@ The cards plug into a [backplane](https://github.com/dhansel/Altair8800-IOBus/tr
 Note that except for the LED output register card (which is hardwired
 to address 255) all other cards include jumpers to configure their address.
 That allows multiple of the same card to be plugged in at the same time.
-
-## I/O Bus Connections
-
-All signals for the I/O bus can be picked up directly on the
-Arduino Due's pins.  For my implementation I connected the
-backplane to the Arduino via a 25-pin ribbon cable attached
-via a DB-25 connector (see picture below).
-
-Bus Signal | Arduino pin | DB25 Pin
------------|-------------|------------
-D0         | D25         | 1     
-D1         | D26         | 2     
-D2         | D27         | 3     
-D3         | D28         | 4     
-D4         | D14         | 5     
-D5         | D15         | 6     
-D6         | D29         | 7     
-D7         | D11         | 8     
-A0         | D34         | 14    
-A1         | D35         | 15    
-A2         | D36         | 16    
-A3         | D37         | 17    
-A4         | D38         | 18    
-A5         | D39         | 19    
-A6         | D40         | 20    
-A7         | D41         | 21    
-OUT        | D6          | 9    
-INP        | D8          | 10   
-WAIT       | D10         | 11    
-RESET      | D52         | 22    
-CLR        | D53         | 23    
-+3.3V      | +3.3V       | 12      
-+5V        | +5V         | 25    
-RAW voltage| RAW         | 13    
-Ground     | GND         | 24    
