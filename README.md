@@ -3,7 +3,7 @@
 ![IOBus Cards](cards.jpg)
 
 While thinking about ways to connect more hardware to my
-[Altair 8800 Simulator](https://github.com/dhansel/Altair8800) I realized that
+[Altair 8800 Simulator](https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6) I realized that
 the signals that drive the DATA and ADDRESS LEDs, together with a
 few control signals (INP, OUT, WAIT) could be used to form a
 simple but effective I/O bus.
@@ -35,7 +35,7 @@ back low before continuing program execution.
 
 For a more detailed description of the timing and possible 
 handshaking see the "Interfacing external hardware" section in 
-the [emulator documentation](https://github.com/dhansel/Altair8800/blob/master/Documentation.pdf).
+the [Altair 8800 simulator documentation](https://github.com/dhansel/Altair8800/blob/master/Documentation.pdf).
 
 ## I/O Bus limitations
 
@@ -59,7 +59,7 @@ with this bus. The main limitations are:
   However, using the INP/OUT signals combined with the WAIT signal
   it is possible to communicate asynchronously. For more specific 
   information on how this communication works, see the "Interfacing
-  external hardware" section in the documentation.
+  external hardware" section in the [Altair 8800 simulator documentation](https://github.com/dhansel/Altair8800/blob/master/Documentation.pdf).
 
 * **Shared data lines for input/output**
   
