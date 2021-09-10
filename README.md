@@ -90,8 +90,9 @@ with this bus. The main limitations are:
 ## I/O Cards
 
 So far there are six different types of cards that can be plugged
-into the I/O bus. Each is described in more detail in a sub-folder
-with corresponding name:
+into a [backplane](https://github.com/dhansel/Altair8800-IOBus/tree/master/00-backplane)
+which connects to the Altair Simulator. 
+Each card is described in more detail in a sub-folder with corresponding name:
 
 - An [LED output register](https://github.com/dhansel/Altair8800-IOBus/tree/master/01-led-output-register) card that provides 8 LEDs at address 255,
   equivalent to the 8-bit output register on the IMSAI-8080
@@ -108,9 +109,6 @@ with corresponding name:
 - A [Centronics printer interface](https://github.com/dhansel/Altair8800-IOBus/tree/master/05-centronics-interface) equivalent to a 88-C700 card
 
 - A [Cassette interface](https://github.com/dhansel/Altair8800-IOBus/tree/master/06-cassette-interface) equivalent to a 88-ACR card
-  
-  
-The cards plug into a [backplane](https://github.com/dhansel/Altair8800-IOBus/tree/master/00-backplane) that connects to the Altair Simulator.
 
 Note that except for the LED output register card (which is hardwired
 to address 255) all other cards include jumpers to configure their address.
