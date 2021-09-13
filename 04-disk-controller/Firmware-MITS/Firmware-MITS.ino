@@ -2645,7 +2645,7 @@ void ctrl_select_drive(byte drive)
           // rotation period known but drive SELECT was off
           // => wait for INDEX pulse to sync up again
           sectorTimerState = TS_NOT_SYNCED;
-          headReadyTimeout = HEAD_LOAD_TIME;
+          if( (drivectrl & bit(PIN_SRO_MOTOR))==0 ) headReadyTimeout = HEAD_LOAD_TIME;
           shortSector = false;
           DBGPIN(PORTB, 3, 1);
         }
@@ -2860,6 +2860,10 @@ void handle_index_signal()
 
       if( measureRotation==0 )
         {
+          // if we are coming out of a NOT_SYNCED period then invalidate regSector,
+          // otherwise an invalid sector value may be read before regSector is updated
+          if( sectorTimerState==TS_NOT_SYNCED ) regSector = 0xFF;
+
           if( hardSectored[selDrive] )
             {
               // check if time since last sector hole was less than 3/4 of a sector length
