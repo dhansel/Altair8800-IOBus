@@ -1,8 +1,6 @@
 # I/O Bus for Altair 8800 simulator
 
-<div align="center">
-  <a href="https://www.youtube.com/watch?v=TIJDfMe6jbI"><img src="youtube.png" alt="Watch the Video"></a>
-</div>
+![IOBus Cards](cards.jpg)
 
 While thinking about ways to connect more hardware to my
 [Altair 8800 Simulator](https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6) I realized that
@@ -116,4 +114,7 @@ Note that except for the LED output register card (which is hardwired
 to address 255) all other cards include jumpers to configure their address.
 That allows multiple of the same card to be plugged in at the same time.
 
-![IOBus Cards](cards.jpg)
+A short video that demonstrates the different cards can be seen here:
+<div align="center">
+  <a href="https://www.youtube.com/watch?v=TIJDfMe6jbI"><img src="youtube.png" alt="Watch the Video"></a>
+</div>
