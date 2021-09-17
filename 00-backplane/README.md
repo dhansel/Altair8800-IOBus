@@ -64,5 +64,5 @@ RESET      | D52         | 22
 CLR        | D53         | 23    
 +3.3V      | +3.3V       | 12      
 +5V        | +5V         | 25    
-RAW voltage| RAW         | 13    
+RAW voltage| RAW/Vin     | 13    
 Ground     | GND         | 24    
