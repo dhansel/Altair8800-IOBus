@@ -50,7 +50,7 @@ with this bus. The main limitations are:
   The Arduino Due emulates the instructions executed by
   the Intel 8080 (or Z80) processor but each emulated instruction
   takes a different amount of real time. Furthermore the time for
-  each instrution does not match 100% the timing of the original
+  each instruction does not match 100% the timing of the original
   processor, i.e. the emulator does not emulate the real 2MHz clock 
   of the Altair. That means that the I/O bus can not provide a 
   clock signal which is required by most S-100 cards for synchronous
