@@ -550,14 +550,27 @@ byte read_sector_data_sd(byte *buffer, byte n, byte status)
      //                 2    => wait for pulse and jump if NOT long   (12/14 cycles)
      //         dst:    label to jump to if DIFFERENT pulse found
      // 
+     // We also check for unfinished bus activity and finish it if possible.
+     // This adds 12 cycles in the worst case.
+     //
      // on entry: r13 contains threshold between short and long pulse
      //           r18 contains time of previous pulse
      // on exit:  r18 is updated to the time of this pulse
      //           r22 contains the pulse length in timer ticks (=processor cycles)     
      // CLOBBERS: r19
      ".macro READPULSE length=0,dst=undefined\n"
-     "        sbis    0x16, 5\n"       // (1/2) skip next instruction if timer 1 input capture seen
-     "        rjmp    .-4\n"           // (2)   wait more 
+     "rp0\\@: sbrs    r16, 1\n"        // (1/2) do we have unfinished bus activity?
+     "        rjmp    rp1\\@\n"        // (2)   no => go on to check for timer capture
+     "        in      r19, 0x06\n"     // (1)   read PINC
+     "        andi    r19, 0x30\n"     // (1)   mask bits 4+5
+     "        brne    rp1\\@\n"        // (1/2) if either one is set then skip
+     "        ldi     r19,  0\n"       // (1)   switch PORTD...
+     "        out     0x0A, r19\n"     // (1)   back to input
+     "        sbi     0x05, 1\n"       // (2)   set WAIT signal back to HIGH
+     "        sbi     0x1b, 1\n"       // (2)   reset INP/OUT pin change flag (PCIFR & bit(PCI1F1))
+     "        andi    r16,  253\n"     // (1)   clear flag for unfinished bus activity
+     "rp1\\@: sbis    0x16, 5\n"       // (1/2) skip next instruction if timer input capture seen
+     "        rjmp    rp0\\@\n"        // (2)   wait more
      "        lds     r19, 0x86\n"     // (2)   get time of input capture (ICR1L, lower 8 bits only)
      "        sbi     0x16, 5\n "      // (2)   clear input capture flag
      "        mov     r22, r19\n"      // (1)   calculate time since previous capture...
@@ -591,7 +604,7 @@ byte read_sector_data_sd(byte *buffer, byte n, byte status)
      "        sbi     0x16, 0\n"        // (2)   reset timer 1 overflow flag
 
      // wait for long pulses followed by short pulse
-     "ws0:    \n"
+     "ws0:    ldi         r20, 0\n"    // (1)   initialize long pulse counter
 #ifdef DEBUGSIG
      "        sbi         0x03, 3\n"   // (2)   toggle "WRITEDATA" (debug)
 #endif
@@ -825,7 +838,10 @@ byte read_sector_data_dd(byte *buffer, unsigned int n, byte status)
      //                 2    => wait for pulse and jump if NOT medium (14/16 cycles)
      //                 3    => wait for pulse and jump if NOT long   (12/14 cycles)
      //         dst:    label to jump to if DIFFERENT pulse found
-     // 
+     //
+     // if length>0 then we also check for unfinished bus activity and
+     // finish it if possible. This adds 12 cycles in the worst case.
+     //
      // on entry: r16 contains minimum length of medium pulse
      //           r17 contains minimum length of long   pulse
      //           r18 contains time of previous pulse
@@ -833,29 +849,44 @@ byte read_sector_data_dd(byte *buffer, unsigned int n, byte status)
      //           r22 contains the pulse length in timer ticks (=processor cycles)     
      // CLOBBERS: r19
      ".macro READPULSEDD length=0,dst=undefined\n"
+     "  .if \\length>0\n"
+     "rpd0\\@: sbrs    r23, 1\n"       // (1/2) do we have unfinished bus activity?
+     "         rjmp    rpd1\\@\n"      // (2)   no => go on to check for timer capture
+     "         in      r19, 0x06\n"    // (1)   read PINC
+     "         andi    r19, 0x30\n"    // (1)   mask bits 4+5
+     "         brne    rpd1\\@\n"      // (1/2) if either one is set then skip
+     "         ldi     r19,  0\n"      // (1)   switch PORTD...
+     "         out     0x0A, r19\n"    // (1)   back to input
+     "         sbi     0x05, 1\n"      // (2)   set WAIT signal back to HIGH
+     "         sbi     0x1b, 1\n"      // (2)   reset INP/OUT pin change flag (PCIFR & bit(PCI1F1))
+     "         andi    r23,  253\n"    // (1)   clear flag for unfinished bus activity
+     "rpd1\\@: sbis    0x16, 5\n"      // (1/2) skip next instruction if timer input capture seen
+     "         rjmp    rpd0\\@\n"      // (2)   wait more
+     "  .else\n"
      "        sbis    0x16, 5\n"       // (1/2) skip next instruction if timer input capture seen
      "        rjmp    .-4\n"           // (2)   wait more 
+     "  .endif\n"
      "        lds     r19, 0x86\n"     // (2)   get time of input capture (ICR1L, lower 8 bits only)
      "        sbi     0x16, 5\n "      // (2)   clear input capture flag
      "        mov     r22, r19\n"      // (1)   calculate time since previous capture...
      "        sub     r22, r18\n"      // (1)   ...into r22
      "        mov     r18, r19\n"      // (1)   set r18 to time of current capture
-     "  .if \\length == 1\n"           //       waiting for short pule?
+     "  .if \\length == 1\n"           //       waiting for short pulse?
      "        cp      r22, r16\n"      // (1)   compare r22 to min medium pulse
      "        brlo   .+2\n"            // (1/2) skip jump if less
-     "        rjmp   \\dst\n"          // (3)   not the expected pulse => jump to dst
+     "        rjmp   \\dst\n"          // (2)   not the expected pulse => jump to dst
      "  .else \n"
      "    .if \\length == 2\n"         // waiting for medium pulse?
      "        cp      r16, r22\n"      // (1)   min medium pulse < r22? => carry set if so
      "        brcc    .+2\n"           // (1/2) skip next instruction if carry is clear
      "        cp      r22, r17\n"      // (1)   r22 < min long pulse? => carry set if so
      "        brcs   .+2\n"            // (1/2) skip jump if greater
-     "        rjmp   \\dst\n"          // (3)   not the expected pulse => jump to dst
+     "        rjmp   \\dst\n"          // (2)   not the expected pulse => jump to dst
      "    .else\n"
      "      .if \\length == 3\n" 
      "        cp      r22, r17\n"      // (1)   min long pulse < r22?
      "        brsh   .+2\n"            // (1/2) skip jump if greater
-     "        rjmp   \\dst\n"          // (3)   not the expected pulse => jump to dst
+     "        rjmp   \\dst\n"          // (2)   not the expected pulse => jump to dst
      "      .endif\n"
      "    .endif\n"
      "  .endif\n"
@@ -892,7 +923,7 @@ byte read_sector_data_dd(byte *buffer, unsigned int n, byte status)
      "        sbi         0x16, 0\n"    // (2)   reset timer overflow flag
      "        ldi         r23, 0\n"     // (1)   bit 1: unfinished bus activity, bit 3: "clear strobe" received
 
-     // wait for at least 80x "10" (short) pulse followed by "100" (medium) pulse
+     // wait for at least 8x "10" (short) pulse followed by "100" (medium) pulse
      "wsd0:   ldi         r20, 0\n"     // (1)   initialize "short pulse" counter
 #ifdef DEBUGSIG
      "        sbi         0x03, 3\n"    // (2)   toggle "WRITEDATA" (debug)
@@ -914,8 +945,6 @@ byte read_sector_data_dd(byte *buffer, unsigned int n, byte status)
      "        rjmp    wsd3b\n"          // (2)   input capture seen => handle it
      "        sbrc    r23, 1\n"         // (1/2) is there unfinished bus activity?
      "        rjmp    wsd3d\n"          // (2)   yes, try to finish it
-     "        cpi     r20, 70\n"        // (1)   have we seen 70 or more short pulses?
-     "        brge    wsd3a\n"          // (1/2) do not accept new bus activity if so
      "        sbic   0x06, 4\n"         // (1/2) skip next instruction if PC4 clear
      "        rjmp   wsd3c\n"           // (2)   PC4 set => found INP
      "        sbis   0x06, 5\n"         // (1/2) skip next instruction if PC5 set
@@ -954,8 +983,10 @@ byte read_sector_data_dd(byte *buffer, unsigned int n, byte status)
      "        mov     r22, r19\n"      // (1)   calculate time since previous capture...
      "        sub     r22, r18\n"      // (1)   ...into r22
      "        mov     r18, r19\n"      // (1)   set r18 to time of current capture
-     "        cp      r22, r16\n"      // (1)   compare r22 to "short pulse" threshold
-     "        brlo    wsd1\n"          // (3)   count and repeat if short pulse
+     "        cp      r22, r16\n"      // (1)   compare r22 to "medium pulse" threshold
+     "        brlo    wsd1\n"          // (2)   count and repeat if short pulse
+     "        cp      r22, r17\n"      // (1)   compare r22 to "long pulse" threshold
+     "        brsh    wsd0\n"          // (2)   restart if long pulse (expecting medium)
      "        cpi     r20, 8\n"        // (1)   did we see at least 8 short pulses?
      "        brlo    wsd0\n"          // (1/2) restart if not
 
@@ -992,6 +1023,14 @@ byte read_sector_data_dd(byte *buffer, unsigned int n, byte status)
 #ifdef DEBUGSIG
      "        sbi         0x03, 3\n"   // (2)   toggle "WRITEDATA" (debug)
 #endif
+
+     // we can't handle bus activity while reading data so if there still
+     // is unfinished activity now we have no choice but to start over,
+     // since it has been >40us since any activity was STARTED this should
+     // never happen in regular operation
+     "        sbrc    r23, 1\n"           // (1/2) do we still have unfinished bus activity?
+     "        rjmp    wsd0\n"             // (2)   yes, restart => MUST wait longer for INP/OUT to be released
+
      "        ldi     r21, 8\n"        // (1)   initialize bit counter (8 bits per byte)
 
      // odd section (previous data bit was "1", no unprocessed MFM bit)
@@ -1038,16 +1077,7 @@ byte read_sector_data_dd(byte *buffer, unsigned int n, byte status)
 
      // ======================  done reading - check for unfinished bus activity
 
-     "rdoned:  sbrs    r23, 1\n"        // (1/2) do we have unfinished bus activity?
-     "         rjmp    rdon2d\n"        // (2)   no => done
-     "wtbusd:  in      r19, 0x06\n"     // (1)   read PINC
-     "         andi    r19, 0x30\n"     // (1)   mask bits 4+5
-     "         brne    wtbusd\n"        // (1/2) if either one is set then wait
-     "         ldi     r19,  0\n"       // (1)   switch PORTD...
-     "         out     0x0A, r19\n"     // (1)   back to input
-     "         sbi     0x05, 1\n"       // (2)   set WAIT signal back to HIGH
-     "         sbi     0x1b, 1\n"       // (2)   reset INP/OUT pin change flag (PCIFR & bit(PCI1F1))
-     "rdon2d:  andi    r23, 8\n"        // (1)   isolate "strobe received" status bit
+     "rdoned:  andi    r23, 8\n"        // (1)   isolate "strobe received" status bit
      "         lds     r19, clrStb\n"   // (1)   get current "clear strobe" variable
      "         or      r19, r23\n"      // (1)   OR "clear strobe" status bit into variable
      "         sts     clrStb, r19\n"   // (1)   store variable
