@@ -27,9 +27,10 @@ half-duplex flow control in this [Wikipedia article](https://en.wikipedia.org/wi
 To keep the chip count down, the serial clock generator on this card is 
 implemented using an ATTiny85 microcontroller. Note that the controller is 
 driven by a 11.0592MHz crystal (as opposed to the usual 8Mhz or 16Mhz)
-which allows for precise serial rates. Program the ATTiny85 with the
-clockgen.hex file in this folder and make sure to use the following
-fuse settings: LOW=0xFF, HIGH=0x57, EXTENDED=0xFF
+which allows for precise serial rates. 
+Use a MiniPro TL866 or similar programmer to upload the clockgen.hex 
+file in this folder to the ATTiny85, using the following
+fuse settings: Low=0xFF, High=0x57, Extended=0xFF.
 
 The baud rate is set by the DIP switches on the card itself,
 not by the software (same as it was with the original 88-2SIO card).
