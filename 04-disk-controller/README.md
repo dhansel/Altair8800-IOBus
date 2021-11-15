@@ -83,9 +83,12 @@ DIP | Function when on           | Function when off
 
 The serial port present on the card can be connected to a PC via an FTDI
 USB-to-serial converter and has two functions:
-1. Upload the firmware to the ATmega328P processor on the card. Load the 
+1. Updating the firmware on the ATmega328P processor on the card. Load the 
 firmware into the Arduino programming environment, select the
-"Arduino Pro or Pro Mini" board at 16MHz and upload the software.
+"Arduino Pro or Pro Mini" board at 16MHz and upload the software. Note that this
+only works if the ATMega already has a bootloader installed. If you have no
+bootloader then follow the instructions in the "Programming the ATMega328P"
+section below.
 2. Provide a monitor to interact directly with the disk drive. To enter
 the monitor, connect a terminal to the serial port at 115200 baud, then press and
 hold the MONITOR button on the board and briefly press RESET. Hold the
@@ -94,6 +97,30 @@ Enter 'h' at the monitor prompt for information about valid commands.
 
 Schematics and PCB as well as a Gerber file for PCB production are in this directory. 
 The project is also available on EasyEDA: https://oshwlab.com/hansel72/diskcontrolleruno
+
+## Programming the ATMega328P
+
+The preferred method to program the ATMega328P chip is to use a
+programmer such as the MiniPro TL866 or other that allows you to
+directly program a .HEX file into the ATMega. Use the Firmware-MITS.hex or Firmware-ICOM.hex  
+file provided in this directory and the following fuse settings:
+Low=0xFF, High=0xDA, Extended=0xFD
+
+If you do not have a programmer you can use an Arduino UNO to program
+the ATMega chip:
+1) Connect the Arduino UNO to your PC
+2) Start the Arduino IDE
+3) In the Arduino IDE, select File->Examples->ArduinoISP
+4) Select Tools->Board and set it to "Arduino UNO"
+5) Select Tools->Port and select the serial port under which your Arduino UNO shows up
+6) Select Sketch->Upload
+7) Wire the ATMega chip to the Arduino UNO as shown [in this diagram](https://github.com/dhansel/Altair8800-IOBus/blob/main/06-cassette-interface/doc/BreadboardAVR.png)
+8) In the Arduino IDE, load the Firmware-MITS.ino or Firmware-ICOM.ino file from this repository
+9) Select Tools->Board and set it to "Arduino Pro or Pro Mini"
+10) Select Tools->Processor and set it to "ATMega328P (5V, 16MHz)"
+11) Select Tools->Programmer and set it to "Arduino as ISP" (**not** ArduinoISP!)
+12) Select Tools->Burn Bootloader (this will program the correct fuse settings)
+13) Select Sketch->"Upload using Programmer" (**not** Sketch->Upload)
 
 ## Changes from previous PCB version
 
