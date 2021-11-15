@@ -21,15 +21,14 @@ provided in this directory and the following fuse settings:
 Low=0xFE, High=0xD7, Extended=0xFD
 
 If you do not have a programmer you can use an Arduino UNO to program
-the ATMega chip. First, burn a bootloader onto the ATMega following 
-[these instructions](https://www.arduino.cc/en/Tutorial/BuiltInExamples/ArduinoToBreadboard)
-but with a couple of changes:
-- Use an 8MHz chrystal instead of 16MHz 
-- After uploading the ArduinoISP sketch to the Arduino UNO and
-  before burning the bootloader onto the ATMega set the board type to
-  "Arduino Pro or Pro Mini" and processor to "ATMega328P (3.3V, 8MHz)"
-
-Once you have the bootloader burned, load the ACR/ACR.ino sketch from
-this repository into the Arduino IDE and upload it following the steps
-in the "Uploading Using an Arduino Board" section in the same instructions
-(using the same board/processor settings as shown above).
+the ATMega chip:
+1) Connect the Arduino UNO to your PC
+2) Start the Arduino IDE
+3) In the Arduino IDE, select File->Examples->ArduinoISP
+4) Select Sketch->Upload
+5) Wire the ATMega chip to the Arduino UNO as shown [in this diagram](doc/BreadboardAVR.png)
+6) In the Arduino IDE, load the ACR/ACR.ino file from this repository
+7) Select Tools->Board and set it to "Arduino Pro or Pro Mini"
+8) Select Tools->Processor and set it to "ATMega328P (3.3V, 8MHz)"
+9) Select Tools->Burn Bootloader (this will program the correct fuse settings)
+10) Select Sketch->"Upload using Programmer" (this will upload the actual program)
