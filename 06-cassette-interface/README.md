@@ -25,10 +25,13 @@ the ATMega chip:
 1) Connect the Arduino UNO to your PC
 2) Start the Arduino IDE
 3) In the Arduino IDE, select File->Examples->ArduinoISP
-4) Select Sketch->Upload
-5) Wire the ATMega chip to the Arduino UNO as shown [in this diagram](doc/BreadboardAVR.png)
-6) In the Arduino IDE, load the ACR/ACR.ino file from this repository
-7) Select Tools->Board and set it to "Arduino Pro or Pro Mini"
-8) Select Tools->Processor and set it to "ATMega328P (3.3V, 8MHz)"
-9) Select Tools->Burn Bootloader (this will program the correct fuse settings)
-10) Select Sketch->"Upload using Programmer" (this will upload the actual program)
+4) Select Tools->Board and set it to "Arduino UNO"
+5) Select Tools->Port and select the serial port under which your Arduino UNO shows up
+6) Select Sketch->Upload
+7) Wire the ATMega chip to the Arduino UNO as shown [in this diagram](doc/BreadboardAVR.png)
+8) In the Arduino IDE, load the ACR/ACR.ino file from this repository
+9) Select Tools->Board and set it to "Arduino Pro or Pro Mini"
+10) Select Tools->Processor and set it to "ATMega328P (3.3V, 8MHz)"
+11) Select Tools->Programmer and set it to "Arduino as ISP" (**not** ArduinoISP!)
+12) Select Tools->Burn Bootloader (this will program the correct fuse settings)
+13) Select Sketch->"Upload using Programmer" (**not** Sketch->Upload)
