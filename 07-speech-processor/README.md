@@ -36,7 +36,7 @@ To output speech, write the proper allophone numbers to the card via the OUT com
 how the chip produces speech from allophones. [This webpage](https://greg-kennedy.com/sp0256-tts)
 contains a translator that produces allphones for a string of english text. Its
 output is a list of allophone names which can be translated to the proper numbers
-using the tables at the end of the [SP0256 documentation](doc/sp0256.pdf).
+using the tables at the end of the [documentation](doc/sp0256.pdf).
 
 If data is written to the chip too fast then it may be lost and the output will
 be garbled. Writing data too slowly can produce gaps in the speech output. 
@@ -48,7 +48,7 @@ the INP command. If bit 7 is clear (zero) then the SP0256 is ready to receive mo
 The BASIC code below shows a "Hello World" example of how to write speech data 
 to the card. Note that in order to change the output all you have to do is change
 the DATA statements at the end of the program. The data needs to end with a "-1"
-to indicate end-of-data. The code assumes the speech processor card is at I/O address 127.
+to indicate end-of-data. The code assumes that the speech processor card is at I/O address 127.
 
 ```
 10 READ A:IF A<0 THEN END
