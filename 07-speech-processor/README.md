@@ -2,8 +2,8 @@
 
 This card is not based on an existing card for the Altair. There
 must have been some cards to provide speech output but I am not
-aware of any such card.  This card is an "original" design by me,
-attaching a [General Instruments SP0256-AL2](https://en.wikipedia.org/wiki/General_Instrument_SP0256)
+aware of any such card.  This card attaches a 
+[General Instruments SP0256-AL2](https://en.wikipedia.org/wiki/General_Instrument_SP0256)
 speech processor to the I/O bus.
 
 ![Speech processor card](speech_processor.jpg)
