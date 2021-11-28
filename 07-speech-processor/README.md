@@ -46,9 +46,10 @@ the INP command. If bit 7 is clear (zero) then the SP0256 is ready to receive mo
 ### Example code
 
 The BASIC code below shows a "Hello World" example of how to produce speech output
-with this card. Note that in order to change the output all you have to do is change
-the DATA statements at the end of the program. The data needs to end with a "-1"
-to indicate end-of-data. The code assumes that the speech processor card is at I/O address 127.
+with this card. The DATA statement at the end of the program contain the allophone
+numbers sent to the SP0256. To produce a different output all you have to do is change
+those numbers. The data must end with a "-1" to indicate end-of-data. 
+The code assumes that the speech processor card is at I/O address 127.
 
 ```
 10 READ A:IF A<0 THEN END
