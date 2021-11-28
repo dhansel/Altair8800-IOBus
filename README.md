@@ -89,26 +89,28 @@ with this bus. The main limitations are:
 
 ## I/O Cards
 
-So far there are six different types of cards that can be plugged
-into a [backplane](https://github.com/dhansel/Altair8800-IOBus/tree/master/00-backplane)
-which connects to the Altair Simulator. 
+So far there are seven different types of cards that can be plugged
+into a [backplane](00-backplane) which connects to the Altair Simulator. 
 Each card is described in more detail in a sub-folder with corresponding name:
 
-- An [LED output register](https://github.com/dhansel/Altair8800-IOBus/tree/master/01-led-output-register) card that provides 8 LEDs at address 255,
+- An [LED output register](01-led-output-register) card that provides 8 LEDs at address 255,
   equivalent to the 8-bit output register on the IMSAI-8080
 
-- A [serial port card](https://github.com/dhansel/Altair8800-IOBus/tree/master/02-serial-port) which is equivalent to "half" a 88-2SIO
+- A [serial port card](02-serial-port) which is equivalent to "half" a 88-2SIO
   card ("half" because it provides only a single serial port)
 
-- A [parallel port](https://github.com/dhansel/Altair8800-IOBus/tree/master/03-parallel-port) equivalent to a 88-PIO card
+- A [parallel port](03-parallel-port) equivalent to a 88-PIO card
 
-- A [floppy disk controller](https://github.com/dhansel/Altair8800-IOBus/tree/master/04-disk-controller) equivalent to the 88-DCDD and 88-MD (minidisk)
+- A [floppy disk controller](04-disk-controller) equivalent to the 88-DCDD and 88-MD (minidisk)
   controllers that can use regular 5.25" and 3.5" floppy drives as well as Shugart SA-800 8" drives. An alternate firmware for this card also lets it
   function as an ICOM3712 or ICOM3812 disk controller.
   
-- A [Centronics printer interface](https://github.com/dhansel/Altair8800-IOBus/tree/master/05-centronics-interface) equivalent to a 88-C700 card
+- A [Centronics printer interface](05-centronics-interface) equivalent to a 88-C700 card
 
-- A [Cassette interface](https://github.com/dhansel/Altair8800-IOBus/tree/master/06-cassette-interface) equivalent to a 88-ACR card
+- A [cassette interface](06-cassette-interface) equivalent to a 88-ACR card
+
+- A [speech output card](07-speech-processor) using an SP0256-AL2 speech processor
+
 
 Note that except for the LED output register card (which is hardwired
 to address 255) all other cards include jumpers to configure their address.
