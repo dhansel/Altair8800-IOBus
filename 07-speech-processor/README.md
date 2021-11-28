@@ -64,7 +64,8 @@ The code assumes that the speech processor card is at I/O address 127.
 20 OUT 127,A
 30 IF INP(127) AND 128 THEN 30
 40 GOTO 10
-100 DATA 27,7,45,53,2,46,51,45,21,2,-1  
+100 REM  [HH1] [EH] [LL] [OW] [PA3] [WW] [ER1] [LL] [DD1] [PA3]
+110 DATA 27,   7,   45,  53,  2,    46,  51,   45,  21,   2,    -1  
 ```
 
 ### Card schematics
