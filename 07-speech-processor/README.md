@@ -8,13 +8,21 @@ speech processor to the I/O bus.
 
 ![Speech processor card](speech_processor.jpg)
 
-### Sourcing the SP0256-AL2 chip
+### Sourcing the SP0256-AL2 chip and crystal
 
 The hardest part of building this card will be to find a good source
-for a SP0256-AL2 chip. Unfortunately there are many fakes out on EBay
-and such so be careful where you order. I got mine from 
+for a SP0256-AL2 chip. Unfortunately there are some fakes being sold on eBay
+and other outlets. Be careful where you order. I got mine from 
 [Sciencestore.co.uk](http://sciencestore.co.uk/acatalog/Electronics.html)
 (see bottom of linked page).
+
+The datasheet for the SP0256 specifies a 3.12MHz crystal to be used to generate
+the clock frequency. I have found it very hard to get one of those. Luckily the
+SP0256 does not appear to be very picky regarding the exact clock frequency. I used a
+3.2768MHz crystal [from DigiKey](https://www.digikey.com/en/products/detail/iqd-frequency-products/LFXTAL024985BULK/8633731)
+which worked well. I have seen [other applications](https://www.instructables.com/Arduino-Vintage-Speech-Chip)
+of this chip using 3.579545MHz chrystals or even 4MHz.
+I believe the only difference is a slightly faster (and higher) voice output.
 
 ### Audio output
 
