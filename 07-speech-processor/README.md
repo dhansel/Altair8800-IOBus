@@ -13,7 +13,7 @@ speech processor to the I/O bus.
 The hardest part of building this card will be to find a good source
 for a SP0256-AL2 chip. Unfortunately there are many fakes out on EBay
 and such so be careful where you order. I got mine from 
-[Sciencescore.uk](http://sciencestore.co.uk/acatalog/Electronics.html)
+[Sciencestore.co.uk](http://sciencestore.co.uk/acatalog/Electronics.html)
 (see bottom of linked page).
 
 ### Audio output
@@ -45,10 +45,10 @@ the INP command. If bit 7 is clear (zero) then the SP0256 is ready to receive mo
 
 ### Example code
 
-The code below shows a "Hello World" BASIC example of how to write speech data 
+The BASIC code below shows a "Hello World" example of how to write speech data 
 to the card. Note that in order to change the output all you have to do is change
 the DATA statements at the end of the program. The data needs to end with a "-1"
-to indicate end-of-data. The program assumes the speech processor card is at I/O address 127.
+to indicate end-of-data. The code assumes the speech processor card is at I/O address 127.
 
 ```
 10 READ A:IF A<0 THEN END
