@@ -3014,6 +3014,12 @@ void handle_sector_timer()
             OCR1A += SECTOR_TRUE_PERIOD * 2;
             sectorTimerState = TS_SECTOR_TRUE;
             DBGPIN(PORTB, 3, 0);
+
+            // if we were delayed getting here then the end of the "sector true"
+            // period may already have passed. In that case just return without
+            // clearing the OCF1A flag which will bring us right back to the
+            // TS_SECTOR_TRUE case.
+            if( ((int16_t) (OCR1A-TCNT1)) <= 2 ) return;
           }
         else
           {
