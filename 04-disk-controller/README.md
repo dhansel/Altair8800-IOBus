@@ -102,9 +102,10 @@ The project is also available on EasyEDA: https://oshwlab.com/hansel72/diskcontr
 
 The preferred method to program the ATMega328P chip is to use a
 programmer such as the MiniPro TL866 or other that allows you to
-directly program a .HEX file into the ATMega. Use the Firmware-MITS.hex or Firmware-ICOM.hex  
-file provided in this directory and the following fuse settings:
-Low=0xFF, High=0xDA, Extended=0xFD
+directly program a .HEX file into the ATMega. Use the Firmware-MITS.hex or Firmware-ICOM.hex file provided in this directory. 
+**Important:** Program the fuse settings
+("Config" button in the TL866 interface) to
+Fuse Low=0xFF, Fuse High=0xDA, Extended Fuse Byte=0xFD
 
 If you do not have a programmer you can use an Arduino UNO to program
 the ATMega chip:
