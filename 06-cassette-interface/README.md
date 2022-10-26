@@ -17,8 +17,9 @@ The project is also available on EasyEDA: https://oshwlab.com/hansel72/2sio_copy
 The preferred method to program the ATMega328P chip is to use a
 programmer such as the MiniPro TL866 or other that allows you to
 directly program a .HEX file into the ATMega. Use the ACR.hex file
-provided in this directory and the following fuse settings:
-Low=0xFE, High=0xD7, Extended=0xFD
+provided in this directory. **Important:** Program the fuse settings
+("Config" button in the TL866 interface) to
+Fuse Low=0xFE, Fuse High=0xD7, Extended Fuse Byte=0xFD
 
 If you do not have a programmer you can use an Arduino UNO to program
 the ATMega chip:
