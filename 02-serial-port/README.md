@@ -29,8 +29,9 @@ implemented using an ATTiny85 microcontroller. Note that the controller is
 driven by a 11.0592MHz crystal (as opposed to the usual 8Mhz or 16Mhz)
 which allows for precise serial rates. 
 Use a MiniPro TL866 or similar programmer to upload the clockgen.hex 
-file in this folder to the ATTiny85, using the following
-fuse settings: Low=0xFF, High=0x57, Extended=0xFF.
+file in this folder to the ATTiny85. **Important:** Program the fuse settings
+("Config" button in the TL866 interface) to
+Fuse Low=0xFF, Fuse High=0x57, Extended Fuse Byte=0xFF.
 
 The baud rate is set by the DIP switches on the card itself,
 not by the software (same as it was with the original 88-2SIO card).
