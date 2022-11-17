@@ -17,6 +17,10 @@ installed at the same time and individually addressed. Setting
 the address to the same as a different I/O board (e.g. the serial output 
 board) provides a crude way of monitoring the data that sent to other boards.
 
+The "VCC" selection jumper switches the output voltage of the VCC and D0-D7
+pins on the right edge of the card. Note that this jumper must be installed
+even if the output pins are not used (either position is fine in that case).
+
 To output a value to the LEDs in BASIC just execute "OUT 255,x" where
 x is a byte value (0-255). The LEDs will display the binary representation
 of the given value.
