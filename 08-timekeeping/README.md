@@ -12,7 +12,7 @@ As a challenge to myself I decided to use only discrete ICs and no microcontroll
 This also has the advantage of not needing to program an ATMega or similar in order to make the card.
 The downside is a larger chip count to build it.
 
-It is possible to connect a DS1302 to the AltairDuino via the parallel input/output
+It is possible to connect a DS1302 to the Altair via the parallel input/output
 card but reading and writing the time is tedious and slow (in BASIC). It will also
 occupy both the input and output ports of the parallel card.
 
