@@ -45,7 +45,7 @@ Table 3 from the [DS1302 datasheet](doc/DS1302.pdf), reproduced here, shows the 
 registers associated with timekeeping:
 ![DS1302 registers](doc/registers.png)
 
-To issue a "read" command for a register, write the value in the table's READ
+To issue a "read" command for a DS1302 register, write the value from the table's READ
 column to the card's command register. To issue a "write" command, use the value
 in the WRITE column of the table. For example, the BASIC commands
 `OUT 96,131:PRINT INP(97)`
