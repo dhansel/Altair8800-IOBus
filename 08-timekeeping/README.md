@@ -81,11 +81,12 @@ The following BASIC code will set the time:
 30 END
 
 600 REM -------- set current time to h:m:s
-610 OUT 96,128:REM stop clock
-620 D=H:R=2:GOSUB 700:REM set hour
-630 D=M:R=1:GOSUB 700:REM set minute
-640 D=S:R=0:GOSUB 700:REM set second and re-start clock
-650 RETURN
+610 OUT 97,0:OUT 96,142:REM clear write-protect bit
+620 OUT 97,128:OUT 96,128:REM stop clock
+630 D=H:R=2:GOSUB 700:REM set hours
+640 D=M:R=1:GOSUB 700:REM set minutes
+650 D=S:R=0:GOSUB 700:REM set seconds and re-start clock
+660 RETURN
 
 700 REM -------- write D to clock register R
 710 OUT 97,INT(D/10)*16+(D MOD 10)
@@ -94,6 +95,7 @@ The following BASIC code will set the time:
 ```
 
 Notes: 
-  - line 610 stops the clock before setting it, the clock will restart when the seconds register is set
+  - line 610 enables write access to the clock registers
+  - line 620 stops the clock before setting it, the clock will restart when the seconds register is set
 to 0 while reading the other registers then we repeat the read. 
   - line 710 converts the value from decimal to BCD before writing to the DS1302
