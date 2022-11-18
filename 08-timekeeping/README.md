@@ -32,3 +32,19 @@ To read a byte of data from a DS1302 register do the following:
 2) Read the status register (e.g. INP(96)). Bit 7 is 1 while the card is busy reading from the DS1302 and will be 0 when reading has finished.
 This step is only necessary when using assembly language as the read process if very fast.
 3) Read the data from the data register (e.g. INP(97))
+
+Table 3 from the [DS1302 datasheet](doc/DS1302.pdf), reproduced here, shows the DS1302
+registers associated with timekeeping:
+![DS1302 registers](doc/registers.png)
+To issue a "read" command for a register, write the value in the table's READ
+column to the card's command register. To issue a "write" command, use the value
+in the WRITE column of the table. For example, the BASIC commands
+`OUT 96,131:PRINT INP(97)`
+will read the minutes register. 
+`OUT 97,5:OUT 96,128`
+will set the seconds register to 5.
+
+
+
+
+
