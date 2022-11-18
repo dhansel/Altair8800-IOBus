@@ -106,3 +106,8 @@ Notes:
   - line 610 enables write access to the clock registers
   - line 620 stops the clock before setting it, the clock will restart when the seconds register is set
   - line 710 converts the value from decimal to BCD before writing to the DS1302
+
+### Card schematics
+
+Schematics and PCB as well as a Gerber file for PCB production are in this directory. 
+The project is also available on EasyEDA: https://oshwlab.com/hansel72/iobus-real-time-clock
