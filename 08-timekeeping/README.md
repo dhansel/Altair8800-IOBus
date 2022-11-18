@@ -48,9 +48,9 @@ registers associated with timekeeping:
 To issue a "read" command for a DS1302 register, write the value from the table's READ
 column to the card's command register. To issue a "write" command, use the value
 in the WRITE column of the table. For example, the BASIC commands
-`OUT 96,131:PRINT INP(97)`
+`OUT 96,&H83:PRINT INP(97)`
 will read the minutes register. 
-`OUT 97,5:OUT 96,128`
+`OUT 97,5:OUT 96,&H80`
 will set the seconds register to 5.
 
 The DS1302 supports 12 or 24 hours format. See the "Clock/Calendar" section
