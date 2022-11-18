@@ -36,6 +36,7 @@ This step is only necessary when using assembly language as the read process if 
 Table 3 from the [DS1302 datasheet](doc/DS1302.pdf), reproduced here, shows the DS1302
 registers associated with timekeeping:
 ![DS1302 registers](doc/registers.png)
+
 To issue a "read" command for a register, write the value in the table's READ
 column to the card's command register. To issue a "write" command, use the value
 in the WRITE column of the table. For example, the BASIC commands
@@ -44,7 +45,55 @@ will read the minutes register.
 `OUT 97,5:OUT 96,128`
 will set the seconds register to 5.
 
+The DS1302 supports 12 or 24 hours format. See the "Clock/Calendar" section
+of the DS1302 datasheet for details.
 
+### Example code
 
+The following BASIC code will repeatedly read and print the current time:
 
+```
+10 GOSUB 400:PRINT H,M,S:GOTO 10
 
+400 REM -------- get current time in h:m:s
+410 R=0:GOSUB 500:S=D:REM read seconds
+420 R=1:GOSUB 500:M=D:REM read minutes
+430 R=2:GOSUB 500:H=D:REM read hours
+440 R=0:GOSUB 500:IF D<S THEN 410
+450 RETURN
+
+500 REM -------- read clock register R
+510 OUT 96,129+(R AND 31)*2
+520 D=INP(97)
+530 D=INT(D/16)*10+(D AND 15)
+540 RETURN
+```
+
+Notes: 
+  - line 440 provides rollover protection: if the seconds changed from 59
+to 0 while reading the other registers then we repeat the read. 
+  - line 530 converts the value read from the DS1320 from BCD to decimal
+
+The following BASIC code will set the time:
+```
+10 INPUT "Current time (H,M,S)? ",H,M,S
+20 GOSUB 600
+30 END
+
+600 REM -------- set current time to h:m:s
+610 OUT 96,128:REM stop clock
+620 D=H:R=2:GOSUB 700:REM set hour
+630 D=M:R=1:GOSUB 700:REM set minute
+640 D=S:R=0:GOSUB 700:REM set second and re-start clock
+650 RETURN
+
+700 REM -------- write D to clock register R
+710 OUT 97,INT(D/10)*16+(D MOD 10)
+720 OUT 96,128+(R AND 31)*2
+730 RETURN
+```
+
+Notes: 
+  - line 610 stops the clock before setting it, the clock will restart when the seconds register is set
+to 0 while reading the other registers then we repeat the read. 
+  - line 710 converts the value from decimal to BCD before writing to the DS1302
