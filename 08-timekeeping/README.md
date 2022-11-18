@@ -3,13 +3,21 @@
 This card adds battery-backed Real-Time-Clock/timekeeping capabilities via the [DS1302](doc/DS1302.pdf) chip.
 
 The DS1302 is a widely used chip which provides the current time and date in
-several easy-to-read registers. The chip itself is a small 8-pin package intended
+several easy-to-read registers. The DS1302 itself is a small 8-pin package intended
 for use with modern microcontrollers that can easily implement the custom serial
 protocol used by the chip. Accessing the data through the byte-based (parallel)
-architecture of the I/O bus is a bit more tricky. As a challenge to myself I decided
-to use only discrete ICs and no microcontroller on the card. This also has the
-advantage of not needing to program an ATMega or similar in order to make the card.
+architecture of the I/O bus is a bit more tricky. 
+
+As a challenge to myself I decided to use only discrete ICs and no microcontroller on the card. 
+This also has the advantage of not needing to program an ATMega or similar in order to make the card.
 The downside is a larger chip count to build it.
+
+It is possible to connect a DS1302 to the AltairDuino via the parallel input/output
+card but reading and writing the time is tedious and slow (in BASIC). It will also
+occupy both the input and output ports of the parallel card.
+
+My goal for this card was to make reading/setting the time simple and fast even in BASIC.
+See the example code below.
 
 ![Timekeeping card](clock.jpg)
 
@@ -55,14 +63,14 @@ The following BASIC code will repeatedly read and print the current time:
 ```
 10 GOSUB 400:PRINT H,M,S:GOTO 10
 
-400 REM -------- get current time in h:m:s
+400 REM -------- get current time in H:M:S
 410 R=0:GOSUB 500:S=D:REM read seconds
 420 R=1:GOSUB 500:M=D:REM read minutes
 430 R=2:GOSUB 500:H=D:REM read hours
 440 R=0:GOSUB 500:IF D<S THEN 410
 450 RETURN
 
-500 REM -------- read clock register R
+500 REM -------- read clock register R, return in D
 510 OUT 96,129+(R AND 31)*2
 520 D=INP(97)
 530 D=INT(D/16)*10+(D AND 15)
@@ -80,12 +88,12 @@ The following BASIC code will set the time:
 20 GOSUB 600
 30 END
 
-600 REM -------- set current time to h:m:s
+600 REM -------- set current time to H:M:S
 610 OUT 97,0:OUT 96,142:REM clear write-protect bit
 620 OUT 97,128:OUT 96,128:REM stop clock
-630 D=H:R=2:GOSUB 700:REM set hours
-640 D=M:R=1:GOSUB 700:REM set minutes
-650 D=S:R=0:GOSUB 700:REM set seconds and re-start clock
+630 R=2:D=H:GOSUB 700:REM set hours
+640 R=1:D=M:GOSUB 700:REM set minutes
+650 R=0:D=S:GOSUB 700:REM set seconds and re-start clock
 660 RETURN
 
 700 REM -------- write D to clock register R
