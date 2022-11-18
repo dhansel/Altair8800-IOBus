@@ -105,5 +105,4 @@ The following BASIC code will set the time:
 Notes: 
   - line 610 enables write access to the clock registers
   - line 620 stops the clock before setting it, the clock will restart when the seconds register is set
-to 0 while reading the other registers then we repeat the read. 
   - line 710 converts the value from decimal to BCD before writing to the DS1302
