@@ -35,6 +35,8 @@ Required crystal specifications:
   - Series Resistance (ESR): 45 kΩ or less
   - Load Capacitance (CL): 6 pF
 
+[This one](https://www.digikey.com/en/products/detail/diodes-incorporated/G23270006/6096621) works well for me.
+
 ### Interacting with the DS1302
 
 The Altair can communicate with the DS1302 chip via regular IN/OUT commands, either 
