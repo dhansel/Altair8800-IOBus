@@ -21,6 +21,20 @@ See the example code below.
 
 ![Timekeeping card](clock.jpg)
 
+### Accuracy
+
+If you encounter excessive clock drift (more than a second per day), check the clock
+crystal you are using. The [DS1302 datasheet](doc/DS1302.pdf) says the following about accuracy:
+
+"The accuracy of the clock is dependent upon the accuracy of the crystal and the accuracy of the match between
+the capacitive load of the oscillator circuit and the capacitive load for which the crystal was trimmed. Additional
+error will be added by crystal frequency drift caused by temperature shifts."
+
+Required crystal specifications:
+  - Frequency: 32.768 kHz
+  - Series Resistance (ESR): 45 kΩ or less
+  - Load Capacitance (CL): 6 pF
+
 ### Interacting with the DS1302
 
 The Altair can communicate with the DS1302 chip via regular IN/OUT commands, either 
@@ -57,6 +71,10 @@ The DS1302 supports 12 or 24 hours format. See the "Clock/Calendar" section
 of the DS1302 datasheet for details.
 
 ### Example code
+
+**Important:** After building the card or taking out the battery, the clock
+chip will be in an inactive state and will return a nonsensical and un-changing
+time. You must set the time first (see below) which will get the clock running.
 
 The following BASIC code will repeatedly read and print the current time:
 
