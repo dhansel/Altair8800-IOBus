@@ -4,8 +4,8 @@
 
 While thinking about ways to connect more hardware to my
 [Altair 8800 Simulator](https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6) I realized that
-the signals that drive the DATA and ADDRESS LEDs, together with a
-few control signals (INP, OUT, WAIT) could be used to form a
+the signals driving the DATA and ADDRESS LEDs, together with a
+few control signals (INP, OUT and WAIT), could be used to form a
 simple but effective I/O bus.
 
 Such a bus could work very similar to the original S-100 bus and 
