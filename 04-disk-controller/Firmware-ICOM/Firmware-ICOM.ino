@@ -20,6 +20,7 @@
 
 Program as ATMega328P @16MHz
 Fuse bytes (Arduino standard): LOW=0xFF, HIGH=0xDA, EXTENDED=0xFD
+Fuse bytes (no bootloader):    LOW=0xFF, HIGH=0xDB, EXTENDED=0xFD
 
 
 Arduino   Atmega Register   Direction  Function
@@ -75,7 +76,7 @@ D6       5   DISKCHANGE
 D7       6   TRACK0
 
 DIP switch settings (A/B refer to physical drives on ribbon cable):
-DIP1     on=Minidisk (5.25") system, off=8" disk system
+DIP1     on=ICOM3812 controller, off=ICOM3712 controller
 DIP2     on=Swap drives A and B, off=don't swap
 DIP3     on=drive B is SA-800, off=drive B is standard 5.25inch
 DIP4     on=drive A is SA-800, off=drive A is standard 5.25inch
@@ -83,7 +84,7 @@ DIP4     on=drive A is SA-800, off=drive A is standard 5.25inch
 */
 
 // optimize code for performance (speed)
-//#pragma GCC optimize ("-O2")
+#pragma GCC optimize ("-O2")
 
 
 // 0 = monitor disabled
@@ -153,7 +154,7 @@ static byte pinSelect[2], pinMotor[2];
 
 // common data buffer (for monitor and controller)
 #define DATA_BUFFER_SIZE 1024
-static byte dataBuffer[DATA_BUFFER_SIZE]; // must hold at least 3 sectors of 256+3 bytes 
+static byte dataBuffer[DATA_BUFFER_SIZE]; // must hold at least max(3 sectors of 256+3 bytes, 1024 bytes)
 static byte header[7];
 
 
@@ -1743,18 +1744,7 @@ static bool format_track_dd(byte *buffer, byte track, byte status = 0)
 
   // Track-end gap - make sure to have enough data to write for a 167ms track. 
   // The formatting code will keep writing data until it sees the INDEX hole.
-  *ptr++ = 127;
-  *ptr++ = 0x4E;
-  *ptr++ = 127;
-  *ptr++ = 0x4E;
-  *ptr++ = 127;
-  *ptr++ = 0x4E;
-  *ptr++ = 127;
-  *ptr++ = 0x4E;
-  *ptr++ = 127;
-  *ptr++ = 0x4E;
-  *ptr++ = 127;
-  *ptr++ = 0x4E;
+  while( (ptr-buffer)<1024 ) { *ptr++ = 127; *ptr++ = 0x4E; }
 
   // status=0 only if called from monitor, must disable interrupts
   if( status==0 ) noInterrupts();
@@ -1786,6 +1776,9 @@ static bool format_track_dd(byte *buffer, byte track, byte status = 0)
   // Enable SPI in master mode with a clock rate of fck/2
   SPCR = (1<<SPE)|(1<<MSTR);
   SPSR = bit(SPI2X);
+
+  // save precomp[0] (will be modified in assembly code below)
+  byte precomp0 = precomp[0];
 
   // see comment in write_sector_data_dd()
   asm volatile
@@ -1897,7 +1890,7 @@ static bool format_track_dd(byte *buffer, byte track, byte status = 0)
      // no pulse (NN) following pulse in first half (PN), 33 cycles since previous pulse
      "          FGETNEXTBYTE        \n"         // (12)
      "          FGETNEXTSEQ         \n"         // (10)
-     "          WAIT 8              \n"         // (7)
+     "          WAIT 7              \n"         // (7)
      "          rjmp fPN            \n"         // (2)   next must be PN since both PN->NN->NN and PN->NN->NP are invalid
 
      // time-wasting jump target if no INDEX pin change
@@ -1913,6 +1906,9 @@ static bool format_track_dd(byte *buffer, byte track, byte status = 0)
 
   // disable SPI
   SPCR = 0;
+
+  // make sure precomp[0] is restored to its original value
+  precomp[0] = precomp0;
 
   // disable write gate
   drivectrl_set(PIN_SRO_WRITEGATE, HIGH);
@@ -2375,8 +2371,15 @@ void print_help()
   Serial.println(F("o [n]         Step n (default 1) tracks out"));
   Serial.println(F("0             Step to track 0"));
   Serial.println(F("d 0/1         Select drive 0 or 1"));
+  Serial.println(F("c 0/1         Set DENSITY control signal to 0 or 1"));
+  Serial.println(F("D 0/1         Use single (0) or doube (1) density"));
+  Serial.println(F("s 0/1         Use disk side 0 or 1"));
   Serial.println(F("I [0/1]       Print information about (current) drive"));
   Serial.println(F("T [n]         Print or set type of current drive"));
+  Serial.println(F("M             Measure spindle rotation speed of current drive"));
+  Serial.println(F("f [ft[,tt]]   Format disk from track ft to track tt"));
+  Serial.println(F("R [ft[,tt]]   Read all sectors from track ft to track tt"));
+  Serial.println(F("W [ft[,tt]]   Write and verify all sectors from track ft to track tt"));
   Serial.println(F("x             Exit to controller mode"));
   Serial.println();
 }
@@ -2468,7 +2471,7 @@ void monitor()
   pinSelect[1] = PIN_SRO_SELECT1; pinMotor[1] = PIN_SRO_MOTOR1;
   if( (dip & 0x04)!=0 ) Serial.println(F("IGNORING DRIVE SWAP SETTING IN MONITOR"));
   
-  selDrive = 1;
+  selDrive = 0;
   drivectrl_set(PIN_SRO_SELECT, LOW);
   motor_timeout[0] = 0;
   motor_timeout[1] = 0;
@@ -2960,7 +2963,6 @@ void select_drive(byte drive)
             regStatus |= CS_SINGLE_SIDED;
           else
             regStatus &= ~CS_SINGLE_SIDED;
-
         }
       else
         {
