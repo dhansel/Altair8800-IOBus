@@ -89,7 +89,7 @@ with this bus. The main limitations are:
 
 ## I/O Cards
 
-So far there are seven different types of cards that can be plugged
+So far there are nine different types of cards that can be plugged
 into a [backplane](00-backplane) which connects to the Altair Simulator. 
 Each card is described in more detail in a sub-folder with corresponding name:
 
@@ -111,10 +111,13 @@ Each card is described in more detail in a sub-folder with corresponding name:
 
 - A [speech output card](07-speech-processor) using an SP0256-AL2 speech processor
 
+- A [real-time clock card](08-timekeeping) using a DS1302 timekeeping IC
 
-Note that except for the LED output register card (which is hardwired
-to address 255) all other cards include jumpers to configure their address.
-That allows multiple of the same card to be plugged in at the same time.
+- A [SPI and I2C card](09-spi-i2c) to allow communication with more modern devices via SPI and I2C
+
+
+Note that all cards include jumpers to configure their address.
+That allows multiple copies of the same card to be plugged in at the same time.
 
 A short video that demonstrates the different cards can be seen here:
 <div align="center">
