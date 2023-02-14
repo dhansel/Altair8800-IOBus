@@ -8,6 +8,20 @@ using IN/OUT operations in BASIC or assembly language.
 Schematics and PCB as well as a Gerber file for PCB production are in this directory. 
 The project is also [available on EasyEDA](https://oshwlab.com/hansel72/2sio_copy_copy_copy).
 
+### Card connections
+
+The card offers two SPI connectors and one I2C connector. Both SPI connectors share the same
+communication lines. Use the CS signals (bits 6+7 of the SPI control register) to select which 
+connected device should be addressed.
+
+The I2C bus communication protocol addresses devices using unique addresses. Multiple devices
+can be daisy-chained or connected in parallel to the I2C connector.
+
+Output signals for the SPI and I2C ports are at 3.3V levels which should work for 
+both 3.3V and 5V devices. Input signals on the ports are 3.3V and 5V tolerant. 
+The jumpers next to the ports can be used to configure the VCC output voltage to 3.3V
+or 5V. This arrangement should allow the card to be used with both 3.3V and 5V devices.
+
 ### Card registers
 
 The card provides several registers (accessible via IN/OUT instructions) to facilitate
@@ -27,9 +41,6 @@ The following two sections describe how these registers are used to initiate com
 SPI communication happens one byte at a time. Data is always sent and received at the same time.
 A transfer is initiated by writing a data byte to the SPI data register. The Altair stops until 
 the byte transfer is finished. The received byte can then be read by reading the SPI data register.
-
-The card offers two SPI connectors. Both are controlled by the same register. Use the CS signals
-(bits 6+7 of the control register) to select which connected device should be addressed
 
 The SPI protocol offers a number of configuration options which can be set by writing to the
 SPI control register. The control register bits have the following function:
