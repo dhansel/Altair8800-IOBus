@@ -28,6 +28,9 @@ SPI communication happens one byte at a time. Data is always sent and received a
 A transfer is initiated by writing a data byte to the SPI data register. The Altair stops until 
 the byte transfer is finished. The received byte can then be read by reading the SPI data register.
 
+The card offers two SPI connectors. Both are controlled by the same register. Use the CS signals
+(bits 6+7 of the control register) to select which connected device should be addressed
+
 The SPI protocol offers a number of configuration options which can be set by writing to the
 SPI control register. The control register bits have the following function:
 
@@ -35,8 +38,8 @@ SPI control register. The control register bits have the following function:
   - bit 3  : clock phase (CPHA), 0=send data on trailing edge, 1=send data on leading edge
   - bit 4  : clock polarity (CPOL), 0=clock idles low, 1=clock idles high
   - bit 5  : 0=LSB first, 1=MSB first
-  - bit 6  : chip 1 select (CS1) line status
-  - bit 7  : chip 2 select (CS2) line status
+  - bit 6  : chip 1 select (CS on SPI port 1) line status
+  - bit 7  : chip 2 select (CS on SPI port 2) line status
 
 Bits 6 and 7 control the voltage on the the "CS" lines for the corresponding SPI connectors
 on the card. Setting the bit to "1" will output 3.3V, setting it to "0" will output 0V.
@@ -116,9 +119,9 @@ See also the [HTU21D.BAS](programs/HTU21D.BAS) and [SSD1306.BAS](programs/SSD130
 
 ### Programming the ATMega328P
 
-The preferred method to program the ATMega328P chip on the card is to use a
-programmer such as the MiniPro TL866 or other that allows you to
-directly program a .HEX file into the ATMega. Use the SPI_I2C.hex file
+After building the card you need to program its ATMega328P chip. The preferred method 
+is to use a programmer such as the MiniPro TL866 or other that allows you to
+directly program a .HEX file into the ATMega. Use the [SPI_I2C.hex](SPI_I2C.hex) file
 provided in this directory. **Important:** Program the fuse settings
 ("Config" button in the TL866 interface) to
 Fuse Low=0xFE, Fuse High=0xD7, Extended Fuse Byte=0xFD
@@ -131,8 +134,8 @@ the ATMega chip:
 4) Select Tools->Board and set it to "Arduino UNO"
 5) Select Tools->Port and select the serial port under which your Arduino UNO shows up
 6) Select Sketch->Upload
-7) Wire the ATMega chip to the Arduino UNO as shown [in this diagram](doc/BreadboardAVR.png)
-8) In the Arduino IDE, load the SPI_I2C/SPI_I2C.ino file from this repository
+7) Wire the ATMega chip to the Arduino UNO as shown [in this diagram](https://github.com/dhansel/Altair8800-IOBus/blob/main/06-cassette-interface/doc/BreadboardAVR.png)
+8) In the Arduino IDE, load the [SPI_I2C.ino](SPI_I2C/SPI_I2C.ino) file from this repository
 9) Select Tools->Board and set it to "Arduino Pro or Pro Mini"
 10) Select Tools->Processor and set it to "ATMega328P (3.3V, 8MHz)"
 11) Select Tools->Programmer and set it to "Arduino as ISP" (**not** ArduinoISP!)
