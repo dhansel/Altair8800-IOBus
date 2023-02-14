@@ -1,0 +1,8 @@
+2 REM Read data via SPI from a MCP3002 A/D converter
+5 BA=64
+10 OUT BA,&H27:REM 4MHz, MSB first, mode 0
+20 OUT BA+1,&H68:D1=INP(BA+1)
+30 OUT BA+1,0:D2=INP(BA+1)
+40 OUT BA,&H40
+50 PRINT (D1 AND 3)*256+D2
+60 GOTO 10

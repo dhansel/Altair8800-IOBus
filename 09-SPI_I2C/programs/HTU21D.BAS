@@ -1,0 +1,48 @@
+5 REM Communicate via I2C with a HTU21D temperature/humidity sensor
+10 BA=64+2:REM base address of I2C/SPI card
+15 IA=64:REM sensor's I2C address
+17 :
+20 GOSUB 1200:REM issue reset
+30 GOSUB 1400:GOSUB 1500
+40 PRINT "temp=";T;"     "," hum=";H
+50 GOTO 30
+999 :
+1000 REM send D to I2C addres IA
+1010 OUT BA+1,1:OUT BA,IA OR 128:OUT BA+1,D
+1015 IF INP(BA) AND 128 THEN 1015
+1017 IF INP(BA)<>0 THEN PRINT "WRITE ERROR:";INP(BA):END
+1020 RETURN
+1099 :
+1100 REM read single byte from I2C address IA, return in D
+1110 OUT BA+1,1:OUT BA,IA
+1120 IF INP(BA) AND 128 THEN 1120
+1130 IF INP(BA)<>32 THEN PRINT "READ ERROR:";INP(BA):END
+1140 D=INP(BA+1):RETURN
+1199 :
+1200 REM reset sensor and check status
+1205 OUT BA+1,0:OUT BA,IA:REM issue "read" to release from "write" mode
+1210 D=254:GOSUB 1000:REM "reset" command
+1220 D=231:GOSUB 1000:REM "read user register" command
+1230 GOSUB 1100:REM read one data byte
+1240 IF D<>2 THEN PRINT "RESET ERROR:";D:END
+1250 RETURN
+1299 :
+1300 REM issue command in D then read two-byte value plus CRC
+1302 GOSUB 1000:REM issue command in d
+1305 FOR D=1 TO 10:NEXT D
+1310 OUT BA+1,3:OUT BA,IA
+1320 IF INP(BA) AND 128 THEN 1320
+1330 IF INP(BA)<>32 THEN PRINT "READ ERROR:";INP(BA):END
+1340 D=INP(BA+1)*256:D=D+INP(BA+1)
+1350 C=INP(BA+1)
+1360 RETURN
+1399 :
+1400 REM read temperature, return in T
+1410 D=227:GOSUB 1300
+1440 T=(D*2.68127E-03)-46.85
+1450 RETURN
+1499 :
+1500 REM read humidity, return in H
+1510 D=229:GOSUB 1300
+1540 H=(D*1.90735E-03)-6
+1550 RETURN
