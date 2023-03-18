@@ -12,6 +12,61 @@ and all others should be "down".
 Schematics and PCB as well as a Gerber file for PCB production are in this directory. 
 The project is also available on EasyEDA: https://oshwlab.com/hansel72/2sio_copy_copy
 
+### Supported tape formats
+
+The initial firmware version supported reading and writing the MITS tape format
+(2400Hz for a "1" bit, 1850Hz for a "0" bit at 300 baud) as well as reading KCS format tapes.
+
+The latest firmware version adds support for writing KCS format tapes (2400Hz for a "1"
+bit, 1200Hz for a "0" bit at 300 baud) as well as reading and writing CUTS format tapes (1200Hz for
+a "1" bit, 600Hz for a "0" bit at 1200 baud).
+
+Switching tape formats is done by writing to the first card register (address 6 if the
+address jumpers are set as shown above). The following values can be used to switch formats:
+  - `00h`: MITS mode: read and write MITS format also read KCS format (default)
+  - `60h`: KCS mode: read and write KCS format
+  - `80h`: CUTS mode: read and write CUTS format.
+
+Since MITS mode is te default and MITS software does not write to address 6, the card
+will work with MITS software without any configuration necessary.
+
+The format selection values shown above are chosen to match the values used by the 
+Processor Technology CUTER tape OS when selecting the tape format. Within CUTER use:
+  - `SET TAPE 0`: read and write CUTS format (default)
+  - `SET TAPE 1`: read and write KCS format
+  - `SET TAPE 1`, followed by `GET /2` or `SAVE /2`: read and write MITS format
+
+In case the format selection via writing to address 6 causes problems or is not desired,
+it can be disabled by connecting pin 16 of the ATMega328P to ground (pin 8 or 22).
+
+### Signal indicator LED
+
+The LED on the PCB will light up if the card is receiving an audio signal that is roughly
+in the expected frequency range for the selected tape format. The LED should be on continuously
+while the tape is playing. If the LED cuts out (even for a very short period), reading 
+tapes will not work. Adjust the volume of whatever generates the signal until the LED is steady on.
+
+When reading CUTS format, it is important for the card to see equally long half-waves in the audio
+signal. This is necessary because a "0" bit in CUTS format is only a single 600Hz half-wave and a "1"
+bit is a 1200Hz full-wave. If the audio volume is too high or too low, the 1-bit A/D conversion of the
+audio signal may skew more toward either high or low. This can cause the decoder to see non-equal 
+half-waves and may lead to incorrect reads. To help adjust the volume setting, in CUTS mode, the
+LED will only light if a signal with reasonably close half-waves is detected. Since the audio
+of actual CUTS data is a mix of "0" and "1" bits, the LED will NOT come on when starting to play
+in the middle of data. The LED will come on when starting within or before the leader signal, 
+which is a continuous series of 1200Hz "1" waves.
+
+### Automatic speed skew compensation
+
+The latest firmware introduces a feature to automatically compensate for differences in
+tape speed. For example if a tape was recorded on a tape recorder that ran faster or slower
+than the one used to play back, the regular decoding may fail since the audio signals are
+outside of the expected frequency range.
+
+Speed skew compensation can be enabled by connection pin 28 of the ATMega328p to ground (pin 8 or 22).
+If enabled, the ACR card will adjust its expectation of the signal frequencies according to the freqency
+of the leader signal seen when starting to read.
+
 ### Programming the ATMega328P
 
 The preferred method to program the ATMega328P chip is to use a
