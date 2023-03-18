@@ -23,15 +23,21 @@ a "1" bit, 600Hz for a "0" bit at 1200 baud).
 
 Switching tape formats is done by writing to the first card register (address 6 if the
 address jumpers are set as shown above). The following values can be used to switch formats:
-  - `00h`: MITS mode: read and write MITS format also read KCS format (default)
-  - `60h`: KCS mode: read and write KCS format
-  - `80h`: CUTS mode: read and write CUTS format.
+  - `00h` or `60h`: MITS mode: read and write MITS format, also read KCS format (default)
+  - `40h` or `80h`: CUTS mode: read and write CUTS format.
+  - `A0h`: KCS mode: read and write KCS format
 
-Since MITS mode is te default and MITS software does not write to address 6, the card
+For example, if you are in BASIC and would like to save a tape in KCS format (as opposed to
+the default MITS format), issue the following command to switch the ACR card into KCS mode: `OUT 6, &HA0`.
+
+Since MITS mode is the default and MITS software does not write to address 6, the card
 will work with MITS software without any configuration necessary.
 
 The format selection values shown above are chosen to match the values used by the 
-Processor Technology CUTER tape OS when selecting the tape format. Within CUTER use:
+Processor Technology [SOLOS CUTER tape OS](https://www.autometer.de/unix4fun/z80pack/ftp/altair/Processor_Technology_Solos_Cuter_Users_Manual.PDF). On the Altair I recommend
+Udo Munk's adaptation of CUTER for MITS ([HEX](https://www.autometer.de/unix4fun/z80pack/ftp/altair/cuter-mits.hex), 
+[ASM](https://www.autometer.de/unix4fun/z80pack/ftp/altair/cuter-mits.asm)) which is set up for the MITS default tape port and status
+bits. Within CUTER issue the following commands to switch formats:
   - `SET TAPE 0`: read and write CUTS format (default)
   - `SET TAPE 1`: read and write KCS format
   - `SET TAPE 1`, followed by `GET /2` or `SAVE /2`: read and write MITS format
@@ -50,11 +56,16 @@ When reading CUTS format, it is important for the card to see equally long half-
 signal. This is necessary because a "0" bit in CUTS format is only a single 600Hz half-wave and a "1"
 bit is a 1200Hz full-wave. If the audio volume is too high or too low, the 1-bit A/D conversion of the
 audio signal may skew more toward either high or low. This can cause the decoder to see non-equal 
-half-waves and may lead to incorrect reads. To help adjust the volume setting, in CUTS mode, the
+half-wave lengths and may lead to incorrect reads. To help adjust the volume setting, in CUTS mode, the
 LED will only light if a signal with reasonably close half-waves is detected. Since the audio
 of actual CUTS data is a mix of "0" and "1" bits, the LED will NOT come on when starting to play
-in the middle of data. The LED will come on when starting within or before the leader signal, 
-which is a continuous series of 1200Hz "1" waves.
+in the middle of a data stream. The LED *will* come on when starting within or before the leader signal ( 
+which is a continuous series of 1200Hz "1" waves), provided the correct frequency and half-wave lengths 
+are seen.
+
+Note that a green LED does **not** guarantee that the ACR card is interpreting the audio data correctly.
+It only means that the audio frequency seen at the input is roughly within the expected range. Read errors
+may still occur if frequencies temporarily deviate too much from the selected format's frequencies.
 
 ### Automatic speed skew compensation
 
@@ -66,6 +77,11 @@ outside of the expected frequency range.
 Speed skew compensation can be enabled by connection pin 28 of the ATMega328p to ground (pin 8 or 22).
 If enabled, the ACR card will adjust its expectation of the signal frequencies according to the freqency
 of the leader signal seen when starting to read.
+
+Speed skew compensation is **not** enabled by default because, if enabled, KCS tapes can not be
+read while in MITS mode. In most cases speed skew compensation should not be necessary but it can
+be helpful to read tapes that were recorded at moderately incorrect speeds (or if your tape unit
+happens to run a bit fast or slow).
 
 ### Programming the ATMega328P
 
