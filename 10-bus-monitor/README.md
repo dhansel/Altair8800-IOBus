@@ -88,6 +88,8 @@ come up just as they were configured previously.
 After plugging into the USB connector and opening a serial terminal, the terminal should
 immediately start showing I/O operations. 
 
+See [here](sample_capture.txt) for an example of what captured data looks like.
+
 In the default configuration:
   - All filters are off, i.e. all bus operations are shown
   - Output is in hex dump format. Each line starts with either "I" or "O",
