@@ -115,6 +115,8 @@ Each card is described in more detail in a sub-folder with corresponding name:
 
 - A [SPI and I2C card](09-spi-i2c) to allow communication with more modern devices via SPI and I2C
 
+- A [Bus Monitor card](10-bus-monitor) to monitor all I/O operations (actual bus cards as well as devices emulated in the simulator)
+
 
 Note that all cards include jumpers to configure their address.
 That allows multiple copies of the same card to be plugged in at the same time.
