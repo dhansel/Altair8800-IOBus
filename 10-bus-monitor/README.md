@@ -14,6 +14,16 @@ can be recorded. Filtering options are available to select or de-select specific
 Schematics and PCB as well as a Gerber file for PCB production are in this directory. 
 The project is also available on EasyEDA: https://oshwlab.com/hansel72/iobus-busmonitor
 
+### Uses
+
+The card has several usage scenarios:
+- Monitor bus input/output values via the LED displays.
+- Monitor all bus operations via USB connections
+- Add a display of 4 hex values to your setup:
+  - configure the four displays on the card to monitor output operations on otherwise unused ports
+  - in your program, any data data written to those ports (e.g. via "OUT 44,123" in BASIC) will show up on the display
+- Implement a whole new I/O device (as an example, see the implementation of an 88-SIO [here](devices/SIO)
+
 ### Assembly tips
 
 As with all the other I/O bus cards, all components are through-hole soldering.
@@ -45,6 +55,13 @@ Alternatively you can opt to load the BusMonitor.ino sketch into the Arduino env
 and upload from there. In that case, make sure to select the "Raspberry Pi Pico/RP2040"
 board type (NOT "Arduino Mbed OS RP2040"). After selecting the board and before uploading, 
 I recommend setting the Tools->Optimize setting to "Optimize even more (-O3)".
+
+### Updating Arduino Simulator firmware
+
+A small change to the Arduino Simulator firmware was necessary to help properly capture
+all data during INP operations. This change has been applied to the Altair8800 repository
+on Apri 7, 2024. It is highly recommended to update the simulator firmware, otherwise some
+input operations captured by this card may show incorrect values.
 
 ### Configuring the 7-segment displays
 
@@ -105,7 +122,7 @@ Pressing any key will enter configuration mode with the following commands:
   - `output suppress [on|off]`
     Enables or disables suppression of repeated lines of data
   - `output raw`
-    Raw data output format. Each line looks like: IOPPVVRR:
+    Raw data output format. Line format is `IOPPVVRR`:
     - IO either "I" (input operation) or "O" (output operation)
     - PP port number (hex)
     - VV data value (hex)
