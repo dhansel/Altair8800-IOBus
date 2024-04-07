@@ -31,7 +31,7 @@ The Raspberry Pi Pico board can either be mounted via through-hole soldering (us
 header pins) or directly soldered onto the board as shown in the picture above.
 
 The "GP18" header is not needed - you can leave it unpopulated. It is just included
-for debugging and test purposes. If you do install it, make sure to first break the
+for testing and possible future additions. If you do install it, make sure to first break the
 connection between CLR and GP18 on the board.
 
 If you are only interested in the capture functionality via USB and not the displays,
